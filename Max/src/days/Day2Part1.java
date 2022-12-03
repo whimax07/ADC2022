@@ -12,11 +12,7 @@ public class Day2Part1 implements GenericDay {
 
 
     public Day2Part1(RunType runType) {
-        File inputFile = switch (runType) {
-            case PART1 -> getInputFileNamePart1();
-            case PART2 -> getInputFileNamePart2();
-            case TEST -> getTestInputFileName();
-        };
+        File inputFile = getFile(runType, 2);
 
         var rounds = Day2Common.readFile(inputFile, Day2Part1::makeRound);
         for (var x : rounds) {
@@ -44,11 +40,6 @@ public class Day2Part1 implements GenericDay {
 
     public int getAnswer() {
         return answer;
-    }
-
-    @Override
-    public String getTaskName() {
-        return "day2_1";
     }
 
 

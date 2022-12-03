@@ -4,36 +4,42 @@ import java.io.File;
 
 public interface GenericDay {
 
-    String getTaskName();
-
-    default File getInputFileNamePart1() {
-        var file = new File("max/inputs/" + getTaskName() + ".txt");
+    private File getInputFileNamePart1(int day) {
+        var file = new File("max/inputs/day" + day + "_1.txt");
 
         if (!file.isFile()) {
-            throw new RuntimeException("Can not find the file: \"" + getTaskName() + "\".");
+            throw new RuntimeException("Can not find the file: \"" + file + "\".");
         }
 
         return file;
     }
 
-    default File getInputFileNamePart2() {
-        var file = new File("max/inputs/" + getTaskName() + ".txt");
+    private File getInputFileNamePart2(int day) {
+        var file = new File("max/inputs/day" + day + "_2.txt");
 
         if (!file.isFile()) {
-            throw new RuntimeException("Can not find the file: \"" + getTaskName() + "\".");
+            throw new RuntimeException("Can not find the file: \"" + file + "\".");
         }
 
         return file;
     }
 
-    default File getTestInputFileName() {
-        var file = new File("max/inputs/" + getTaskName().substring(0, 4) + "_test.txt");
+    private File getTestInputFileName(int day) {
+        var file = new File("max/inputs/day" + day + "_test.txt");
 
         if (!file.isFile()) {
-            throw new RuntimeException("Can not find the test file: \"" + getTaskName() + "\" at loc: \"" + file + "\".");
+            throw new RuntimeException("Can not find the test file: \"" + file + "\".");
         }
 
         return file;
+    }
+
+    default File getFile(RunType runType, int day) {
+        return switch (runType) {
+            case PART1 -> getInputFileNamePart1(day);
+            case PART2 -> getInputFileNamePart2(day);
+            case TEST -> getTestInputFileName(day);
+        };
     }
 
 }

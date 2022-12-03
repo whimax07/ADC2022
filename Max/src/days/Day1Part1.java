@@ -16,11 +16,7 @@ public class Day1Part1 implements GenericDay {
 
 
     public Day1Part1(RunType runType) {
-        File inputFile = switch (runType) {
-            case PART1 -> getInputFileNamePart1();
-            case PART2 -> getInputFileNamePart2();
-            case TEST -> getTestInputFileName();
-        };
+        File inputFile = getFile(runType, 1);
 
         values = Day1Common.readFile(inputFile);
         answer = findGreatest();
@@ -35,9 +31,6 @@ public class Day1Part1 implements GenericDay {
     public int getAnswer() {
         return answer;
     }
-
-    @Override
-    public String getTaskName() { return "day1_1"; }
 
 
 
