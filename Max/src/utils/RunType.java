@@ -1,3 +1,3 @@
 package utils;
 
-public enum RunType {PART1, PART2, TEST}
+public enum RunType {Q, TEST}

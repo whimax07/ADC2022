@@ -45,7 +45,7 @@ public class Day2Part1 implements GenericDay {
 
 
     public static void main(String[] args) {
-        var day = new Day2Part1(RunType.PART1);
+        var day = new Day2Part1(RunType.Q);
         System.out.println(day.answer);
     }
 
