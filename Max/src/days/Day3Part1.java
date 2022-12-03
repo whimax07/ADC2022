@@ -37,24 +37,12 @@ public class Day3Part1 implements GenericDay {
 
         for (Character c : right.toCharArray()) {
             if (leftItems.contains(c)) {
-                answer += getItemPriority(c);
+                answer += Day3Common.getItemPriority(c);
                 return;
             }
         }
 
         throw new RuntimeException("No duplicate items found.");
-    }
-
-    public static int getItemPriority(Character c) {
-        int value;
-
-        if (Character.isUpperCase(c)) {
-            value = 27 + c - 'A';
-        } else {
-            value = 1 + c - 'a';
-        }
-
-        return value;
     }
 
 
