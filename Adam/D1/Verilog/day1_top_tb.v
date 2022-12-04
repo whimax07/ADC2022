@@ -105,6 +105,13 @@ input_next_val = 1'b1;
 input_next_val = 1'b0;
 #10
 input_val = 16'h2710;
+#10
+
+input_next_val = 1'b1;
+#10
+input_next_val = 1'b0;
+#10
+input_val = 16'h0000;
 
 end
 endmodule

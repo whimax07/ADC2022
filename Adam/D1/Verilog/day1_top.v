@@ -27,7 +27,7 @@ module day1_top( par_input, next_val, highest_val_index, highest_val_sum );
             if (current_sum + par_input > highest_sum)
             begin
                 highest_sum <= current_sum + par_input;
-                highest_index <=  current_index;
+                highest_index <= current_index;
             end
         end
     end
