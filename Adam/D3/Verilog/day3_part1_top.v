@@ -1,18 +1,18 @@
 `timescale 1ns / 1ps
 
-module day3_top( clk, sum, done, debug_rom_out, debug_rom_addr, debug_comparator, debug_half1, debug_half2 );
+module day3_part1_top( clk, sum, done, debug_rom_out, debug_rom_addr, debug_comparator, debug_half1, debug_half2 );
     input clk;
     output [31:0] sum;
     output done;
     output [7:0] debug_rom_out;
-    output [11:0] debug_rom_addr;
+    output [13:0] debug_rom_addr;
     output [63:0] debug_comparator;
     output [63:0] debug_half1;
     output [63:0] debug_half2;
     
-    reg [11:0] addr = 12'b0;
-    reg [11:0] start_addr = 12'b0;
-    reg [11:0] next_addr = 12'b0;
+    reg [13:0] addr = 14'b0;
+    reg [13:0] start_addr = 14'b0;
+    reg [13:0] next_addr = 14'b0;
     wire [7:0] rom_out;
     
     reg [63:0] half1 = 64'b0;
@@ -52,6 +52,7 @@ module day3_top( clk, sum, done, debug_rom_out, debug_rom_addr, debug_comparator
         begin
             half1 <= 64'b0;
             half2 <= 64'b0;
+            comparator <= 64'b0;
             state <= READ_1;
             addr <= start_addr;
             next_addr <= addr;

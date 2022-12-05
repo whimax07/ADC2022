@@ -31,4 +31,4 @@ if __name__ == '__main__':
 			if v == 0:
 				f.write('\n')
 		f.write('0;')
-	print('Done: {} bits written'.format(len(vals)*16 + 16))
+	print('Done: {} bits written'.format(len(vals)*8 + 8))
