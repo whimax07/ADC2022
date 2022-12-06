@@ -48,11 +48,8 @@ public class Day6Part2 implements GenericDay {
                 charsUsed.put(oldC, charsUsed.get(oldC) - 1);
             }
 
-            if (charsUsed.containsKey(newC)) {
-                charsUsed.put(newC, charsUsed.get(newC) + 1);
-            } else {
-                charsUsed.put(newC, 1);
-            }
+            var val = charsUsed.getOrDefault(newC, 0);
+            charsUsed.put(newC, val + 1);
         };
 
         int oldIndex = 0;
