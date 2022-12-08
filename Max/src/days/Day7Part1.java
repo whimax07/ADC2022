@@ -5,28 +5,30 @@ import utils.ReadLines;
 import utils.RunType;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.InputMismatchException;
-import java.util.regex.Pattern;
+import java.util.Stack;
 
 public class Day7Part1 implements GenericDay {
 
-    private final int answer = 0;
-
-    private Day7Common.FileTree.Dir current;
-
+    private int answer = 0;
 
 
     public Day7Part1(RunType runType) {
         File inputFile = getFile(runType, 7);
 
-        new ReadLines(inputFile, this::eatLine).readFile();
-    }
+        var fileTreeBuilder = new Day7Common.BuildFileTree();
+        new ReadLines(inputFile, fileTreeBuilder::receiveLine).readFile();
 
+        var folders = new Stack<Day7Common.Dir>();
+        folders.add(fileTreeBuilder.getRoot());
 
+        while (!folders.isEmpty()) {
+            var folder = folders.pop();
+            if (folder.getDirSize() <= 100000) {
+                answer += folder.getDirSize();
+            }
 
-    private void eatLine(String line) {
-
+            folders.addAll(folder.getChildren());
+        }
     }
 
 
