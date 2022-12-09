@@ -57,7 +57,6 @@ public class Day9Part2 implements GenericDay {
                 rope[section] = moveKnot(rope[section - 1], rope[section]);
             }
             visitedSpaces.add(rope[LAST]);
-            System.out.println("rope: " + Arrays.toString(rope));
         }
     }
 
