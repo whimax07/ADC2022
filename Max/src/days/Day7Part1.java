@@ -23,6 +23,7 @@ public class Day7Part1 implements GenericDay {
 //            }
 //        }
 
+        // NOTE(Max): This isn't great but I want to show stream works.
         answer = fileTreeBuilder.getRoot().stream()
                 .mapToLong(Day7Common.Dir::getDirSize)
                 .filter(x -> x <= 100000)
