@@ -6,7 +6,6 @@ import utils.RunType;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 public class Day8Part2 implements GenericDay {
@@ -15,13 +14,7 @@ public class Day8Part2 implements GenericDay {
 
     private final ArrayList<ArrayList<Integer>> grid = new ArrayList<>();
 
-    private final ArrayList<ArrayList<Integer>> northViews = new ArrayList<>();
-
-    private final ArrayList<ArrayList<Integer>> eastViews = new ArrayList<>();
-
-    private final ArrayList<ArrayList<Integer>> southViews = new ArrayList<>();
-
-    private final ArrayList<ArrayList<Integer>> westViews = new ArrayList<>();
+    private final ArrayList<ArrayList<Integer>> views;
 
     private final int width;
 
@@ -37,34 +30,37 @@ public class Day8Part2 implements GenericDay {
         width = grid.get(0).size();
         height = grid.size();
 
-        Consumer<ArrayList<ArrayList<Integer>>> initViews = matrix -> {
-            for (int y = 0; y < height; y++) {
-                var row = new ArrayList<Integer>();
-                for (int x = 0; x < width; x++) {
-                    row.add(-1);
-                }
-                matrix.add(row);
-            }
-        };
-        initViews.accept(northViews);
-        initViews.accept(eastViews);
-        initViews.accept(southViews);
-        initViews.accept(westViews);
-
-        lookFromNorth();
-        lookFromEast();
-        lookFromSouth();
-        lookFromWest();
-
+        views = new ArrayList<>(height);
         for (int y = 0; y < height; y++) {
+            var row = new ArrayList<Integer>(width);
             for (int x = 0; x < width; x++) {
-                answer = Integer.max(
-                        answer,
-                        northViews.get(y).get(x) * eastViews.get(y).get(x)
-                                * southViews.get(y).get(x) * westViews.get(y).get(x)
-                );
+                row.add(1);
+            }
+            views.add(row);
+        }
+
+        // ↑
+        viewsLookingNorth();
+        // ←
+        viewsLookingEast();
+        // ↓
+        viewsLookingSouth();
+        // ←
+        viewsLookingWest();
+
+        for (var row : views) {
+            for (var view : row) {
+                answer = Integer.max(answer, view);
             }
         }
+
+        // Its call to write, but it is hard to work out what's going on.
+        /*
+        answer = views.stream()
+                .flatMap(Collection::stream)
+                .max(Integer::compare)
+                .orElseThrow();
+         */
     }
 
 
@@ -77,64 +73,60 @@ public class Day8Part2 implements GenericDay {
         grid.add(row);
     }
 
-    private void lookFromNorth() {
+    private void viewsLookingSouth() {
         for (int x = 1; x < width - 1; x++) {
             var viewChecker = new ViewCount();
             for (int y = 0; y < height; y++) {
-                var tree = grid.get(y).get(x);
-                @SuppressWarnings("UnnecessaryLocalVariable")
-                var pos = y;
-                var range = viewChecker.getViewRange(tree, pos);
-                northViews.get(y).set(x, range);
+                var range = viewChecker.getViewRange(grid.get(y).get(x));
+                views.get(y).set(x, views.get(y).get(x) * range);
             }
         }
     }
 
-    private void lookFromEast() {
+    private void viewsLookingWest() {
         for (int y = 1; y < height - 1; y++) {
             var viewChecker = new ViewCount();
             for (int x = width - 1; x >= 0; x--) {
-                var tree = grid.get(y).get(x);
-                var pos = width - (x + 1);
-                var range = viewChecker.getViewRange(tree, pos);
-                eastViews.get(y).set(x, range);
+                var range = viewChecker.getViewRange(grid.get(y).get(x));
+                views.get(y).set(x, views.get(y).get(x) * range);
             }
         }
     }
 
-    private void lookFromSouth() {
+    private void viewsLookingNorth() {
         for (int x = 1; x < width - 1; x++) {
             var viewChecker = new ViewCount();
             for (int y = height - 1; y >= 0; y--) {
-                var tree = grid.get(y).get(x);
-                var pos = height - (y + 1);
-                var range = viewChecker.getViewRange(tree, pos);
-                southViews.get(y).set(x, range);
+                var range = viewChecker.getViewRange(grid.get(y).get(x));
+                views.get(y).set(x, views.get(y).get(x) * range);
             }
         }
     }
 
-    private void lookFromWest() {
+    private void viewsLookingEast() {
         for (int y = 1; y < height - 1; y++) {
             var viewChecker = new ViewCount();
             for (int x = 0; x < width - 1; x++) {
-                var tree = grid.get(y).get(x);
-                @SuppressWarnings("UnnecessaryLocalVariable")
-                var pos = x;
-                var range = viewChecker.getViewRange(tree, pos);
-                westViews.get(y).set(x, range);
+                var range = viewChecker.getViewRange(grid.get(y).get(x));
+                views.get(y).set(x, views.get(y).get(x) * range);
             }
         }
     }
+
+
 
     private static class ViewCount {
         private int tallTree = -1;
 
         private final ArrayList<Integer> distanceMap = new ArrayList<>();
 
+        private int pos = -1;
 
 
-        public int getViewRange(int tree, int pos) {
+
+        public int getViewRange(int tree) {
+            pos ++;
+
             if (tallTree == -1) {
                 tallTree = tree;
                 IntStream.rangeClosed(0, tree).forEach(i -> distanceMap.add(pos));
