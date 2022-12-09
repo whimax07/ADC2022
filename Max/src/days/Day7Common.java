@@ -1,12 +1,15 @@
 package days;
 
 import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public class Day7Common {
 
     public record File(String name, long size) {  }
 
-    public static class Dir {
+    public static class Dir implements Iterable<Dir> {
         private final Dir parent;
 
         private final String name;
@@ -54,6 +57,87 @@ public class Day7Common {
         @SuppressWarnings("unused")
         public String getName() {
             return name;
+        }
+
+
+
+        @Override
+        public Iterator<Dir> iterator() {
+            return new DirIterator(this);
+        }
+
+        @Override
+        public Spliterator<Dir> spliterator() {
+            return new DirSpliterator(this);
+        }
+
+        public Stream<Dir> stream() {
+            return StreamSupport.stream(spliterator(), false);
+        }
+
+
+
+        private static class DirIterator implements Iterator<Dir> {
+            private final Stack<Day7Common.Dir> waiting = new Stack<>();
+
+            public DirIterator(Dir dir) {
+                waiting.add(dir);
+            }
+
+            @Override
+            public boolean hasNext() {
+                return !waiting.empty();
+            }
+
+            @Override
+            public Dir next() {
+                var dir = waiting.pop();
+
+                if (!dir.getChildren().isEmpty()) {
+                    waiting.addAll(dir.getChildren());
+                }
+
+                return dir;
+            }
+        }
+
+        private static class DirSpliterator implements Spliterator<Dir> {
+            private final Iterator<Dir> itor;
+
+            public DirSpliterator(Dir dir) {
+                itor = dir.iterator();
+            }
+
+            @Override
+            public boolean tryAdvance(Consumer<? super Dir> action) {
+                if (itor.hasNext()) {
+                    var next = itor.next();
+                    action.accept(next);
+                    return true;
+                }
+
+                return false;
+            }
+
+            @Override
+            public Spliterator<Dir> trySplit() {
+                if (itor.hasNext()) {
+                    var next = itor.next();
+                    return new DirSpliterator(next);
+                }
+
+                return null;
+            }
+
+            @Override
+            public long estimateSize() {
+                return Long.MAX_VALUE;
+            }
+
+            @Override
+            public int characteristics() {
+                return DISTINCT | NONNULL;
+            }
         }
 
     }

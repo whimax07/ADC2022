@@ -5,11 +5,10 @@ import utils.ReadLines;
 import utils.RunType;
 
 import java.io.File;
-import java.util.Stack;
 
 public class Day7Part1 implements GenericDay {
 
-    private int answer = 0;
+    private final long answer;
 
 
     public Day7Part1(RunType runType) {
@@ -18,22 +17,22 @@ public class Day7Part1 implements GenericDay {
         var fileTreeBuilder = new Day7Common.BuildFileTree();
         new ReadLines(inputFile, fileTreeBuilder::receiveLine).readFile();
 
-        var folders = new Stack<Day7Common.Dir>();
-        folders.add(fileTreeBuilder.getRoot());
+//        for (var folder : fileTreeBuilder.getRoot()) {
+//            if (folder.getDirSize() <= 100000) {
+//                answer += folder.getDirSize();
+//            }
+//        }
 
-        while (!folders.isEmpty()) {
-            var folder = folders.pop();
-            if (folder.getDirSize() <= 100000) {
-                answer += folder.getDirSize();
-            }
+        answer = fileTreeBuilder.getRoot().stream()
+                .mapToLong(Day7Common.Dir::getDirSize)
+                .filter(x -> x <= 100000)
+                .sum();
 
-            folders.addAll(folder.getChildren());
-        }
     }
 
 
 
-    public int getAnswer() {
+    public long getAnswer() {
         return answer;
     }
 

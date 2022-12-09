@@ -7,7 +7,6 @@ import utils.RunType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Stack;
 
 public class Day7Part2 implements GenericDay {
 
@@ -25,14 +24,11 @@ public class Day7Part2 implements GenericDay {
         var spaceNeeded = 30000000 - (70000000 - root.getDirSize());
 
         var folders = new ArrayList<Day7Common.Dir>();
-        var toGet = new Stack<Day7Common.Dir>();
-        toGet.add(root);
 
-        while (!toGet.empty()) {
-            var current = toGet.pop().getChildren();
-            var bigEnough = current.stream().filter(x -> x.getDirSize() >= spaceNeeded).toList();
-            folders.addAll(bigEnough);
-            toGet.addAll(bigEnough);
+        for (var folder : root) {
+            if (folder.getDirSize() >= spaceNeeded) {
+                folders.add(folder);
+            }
         }
 
         folders.sort(Comparator.comparingLong(Day7Common.Dir::getDirSize));
