@@ -147,6 +147,7 @@ public class Day12Part3 implements GenericDay {
 
             var startPoints = new ArrayList<PathTreeNode>();
 
+            // Look for all the zero height cells and add them to the starting point list.
             for (int y = 0; y < HEIGHT; y++) {
                 var row = grid.get(y);
                 for (int x = 0; x < WIDTH; x++) {
@@ -157,6 +158,7 @@ public class Day12Part3 implements GenericDay {
                 }
             }
 
+            // Check each of the starting points to see if it has the shortest path to the exit.
             for (var startPoint : startPoints) {
                 currentLooks.clear();
                 nextLooks.clear();
@@ -171,7 +173,8 @@ public class Day12Part3 implements GenericDay {
             }
 
             assert shortestPath != null;
-            // The other answer don't include the exit in the same way I do.
+            // The other answers don't include the exit in the same the shortestPath does so subtract it from the array
+            // size.
             return shortestPath.size() - 1;
         }
 
@@ -180,7 +183,7 @@ public class Day12Part3 implements GenericDay {
             for (int count = 1; count < maxCount; count++) {
 
                 for (var current : currentLooks) {
-                    var StartingNextLooksCount = nextLooks.size();
+                    var startingNextLooksCount = nextLooks.size();
                     var directions = new v2i[] {
                             moveNorth(current.getData()),
                             moveEast(current.getData()),
@@ -190,11 +193,13 @@ public class Day12Part3 implements GenericDay {
 
                     for (var d : directions) {
                         if (check(d, current, count)) {
+                            // The exit has been found.
                             return current.backTrackPath(EXIT_POS);
                         }
                     }
 
-                    if (StartingNextLooksCount == nextLooks.size()) {
+                    // If the counts are different then the current cell is adjacent to a cell that made progress.
+                    if (startingNextLooksCount == nextLooks.size()) {
                         current.proneNode();
                     }
                 }
@@ -213,19 +218,24 @@ public class Day12Part3 implements GenericDay {
         private boolean check(v2i next, PathTreeNode currentNode, int cycle) {
             var height = get(currentNode.getData());
 
-            if (next != null) {
-                if (visitedCells.containsKey(next) && visitedCells.get(next) <= cycle) return false;
+            if (next == null) return false;
 
-                // Have we found the exit, if we have can we access it?
-                if (get(next) == EXIT_HEIGHT) return height + 1 >= ENTREE_HEIGHT;
+            // If we have visited next before, and it has in fewer steps it isn't a candidate to be on the shortest
+            // path.
+            if (visitedCells.containsKey(next) && visitedCells.get(next) <= cycle) return false;
 
-                if (height + 1 >= get(next)) {
-                    var toLook = new PathTreeNode(currentNode, next);
-                    nextLooks.add(toLook);
-                    visitedCells.put(next, cycle);
-                }
+            // Have we found the exit, if we have can we access it?
+            if (get(next) == EXIT_HEIGHT) return height + 1 >= ENTREE_HEIGHT;
+
+            // If at this point we can get to the cell `next` then we want to check it in case it is on the fastest path
+            // in the future. We add it to visited cells now because we don't need to have more than one route use it.
+            if (height + 1 >= get(next)) {
+                var toLook = new PathTreeNode(currentNode, next);
+                nextLooks.add(toLook);
+                visitedCells.put(next, cycle);
             }
 
+            // We couldn't reach the exit this time.
             return false;
         }
 
