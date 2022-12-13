@@ -46,12 +46,12 @@ public class Day12Part3 implements GenericDay {
             super(parent, loc);
         }
 
-        public void proneNode() {
+        public void pruneNode() {
             var parent = getParent();
             if (parent instanceof PathTreeNode parentTree) {
                 parentTree.getChildren().remove(this);
                 if (parentTree.getChildren().isEmpty()) {
-                    parentTree.proneNode();
+                    parentTree.pruneNode();
                 }
             } else {
                 if (parent == null) {
@@ -198,9 +198,10 @@ public class Day12Part3 implements GenericDay {
                         }
                     }
 
-                    // If the counts are the same then none of the cells adjacent to `current` made progress.
+                    // If the counts are the same then none of the cells adjacent to `current` made progress, so we can
+                    // prune that route.
                     if (startingNextLooksCount == nextLooks.size()) {
-                        current.proneNode();
+                        current.pruneNode();
                     }
                 }
 
