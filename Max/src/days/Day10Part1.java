@@ -3,19 +3,24 @@ package days;
 import utils.GenericDay;
 import utils.ReadLines;
 import utils.RunType;
-import utils.v2i;
 
 import java.io.File;
-import java.util.HashSet;
 
 public class Day10Part1 implements GenericDay {
 
-    private final int answer;
+    private int answer;
+
+    private final Day10Common.CPU cpu = new Day10Common.CPU();
 
 
 
     public Day10Part1(RunType runType) {
         File inputFile = getFile(runType, 10);
+
+        cpu.addHook(
+                (cycle, reg) -> cycle % 40 == 20,
+                (cycle, reg) -> answer += cycle * reg
+        );
 
         new ReadLines(inputFile, this::eatLine).readFile();
     }
@@ -23,7 +28,7 @@ public class Day10Part1 implements GenericDay {
 
 
     private void eatLine(String line) {
-
+        cpu.executeInstruction(line);
     }
 
 

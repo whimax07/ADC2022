@@ -9,14 +9,20 @@ public class Day10Test {
 
     @Test
     void part1() {
-        assert(false);
-        assertEquals(0, new Day10Part1(RunType.TEST).getAnswer());
+        assertEquals(13140, new Day10Part1(RunType.TEST).getAnswer());
     }
 
     @Test
     void part2() {
-        assert(false);
-        assertEquals(0, new Day10Part2(RunType.TEST).getAnswer());
+        assertEquals(
+                """
+                ##..##..##..##..##..##..##..##..##..##..
+                ###...###...###...###...###...###...###.
+                ####....####....####....####....####....
+                #####.....#####.....#####.....#####.....
+                ######......######......######......####
+                #######.......#######.......#######.....
+                """, new Day10Part2(RunType.TEST).getAnswer());
     }
 
 }
