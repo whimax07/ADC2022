@@ -102,7 +102,6 @@ public class Day12Part1 implements GenericDay {
 
         public int findRouteFromStart() {
             for (int count = 1; ; count++) {
-                printPrgress();
                 for (var current : currentLooks) {
                     var currentHeight = get(current);
                     if (check(moveNorth(current), currentHeight)) return count;
@@ -165,7 +164,8 @@ public class Day12Part1 implements GenericDay {
             return grid.get(at.y()).get(at.x());
         }
 
-        private void printPrgress() {
+        @SuppressWarnings("unused")
+        private void printProgress() {
             var copy = new ArrayList<ArrayList<String>>();
             for (var row : grid) {
                 var newRow = new ArrayList<String>();
