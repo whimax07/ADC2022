@@ -18,4 +18,9 @@ public class Day12Test {
         assertEquals(29, new Day12Part2(RunType.TEST).getAnswer());
     }
 
+    @Test
+    void part3() {
+        assertEquals(29, new Day12Part3(RunType.TEST).getAnswer());
+    }
+
 }

@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+@SuppressWarnings("unused")
 public class ManyLeafTree<T> implements Iterable<ManyLeafTree<T>> {
 
     private final ManyLeafTree<T> parent;
@@ -24,28 +25,28 @@ public class ManyLeafTree<T> implements Iterable<ManyLeafTree<T>> {
     }
 
 
-    
-    protected ManyLeafTree<T> getParent() {
+
+    public ManyLeafTree<T> getParent() {
         return parent;
     }
 
-    protected T getData() {
+    public T getData() {
         return data;
     }
 
-    protected void setData(T data) {
+    public void setData(T data) {
         this.data = data;
     }
 
-    protected void addChild(ManyLeafTree<T> child) {
+    public void addChild(ManyLeafTree<T> child) {
         children.add(child);
     }
     
-    protected void removeChild(int pos) {
+    public void removeChild(int pos) {
         children.remove(pos);
     }
 
-    protected ArrayList<ManyLeafTree<T>> getChildren() {
+    public ArrayList<ManyLeafTree<T>> getChildren() {
         return children;
     }
 
