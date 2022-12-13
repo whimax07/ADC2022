@@ -55,6 +55,7 @@ public class Day10Part2 implements GenericDay {
     }
 
 
+
 /*
 The answer is RBPARAGF:
 ###..###..###...##..###...##...##..####.
