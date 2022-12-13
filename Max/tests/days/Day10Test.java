@@ -1,5 +1,7 @@
 package days;
 
+import days.d1_d10.Day10Part1;
+import days.d1_d10.Day10Part2;
 import org.junit.jupiter.api.Test;
 import utils.RunType;
 

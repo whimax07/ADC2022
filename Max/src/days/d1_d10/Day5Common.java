@@ -1,4 +1,4 @@
-package days;
+package days.d1_d10;
 
 import java.util.*;
 import java.util.regex.Pattern;

@@ -1,20 +1,19 @@
-package days;
+package days.d1_d10;
 
 import utils.GenericDay;
-import utils.Pair;
 import utils.ReadLines;
 import utils.RunType;
 
 import java.io.File;
 import java.util.InputMismatchException;
 
-public class Day4Part2 implements GenericDay {
+public class Day4Part1 implements GenericDay {
 
     private int answer = 0;
 
 
 
-    public Day4Part2(RunType runType) {
+    public Day4Part1(RunType runType) {
         File inputFile = getFile(runType, 4);
 
         doTheThing(inputFile);
@@ -40,15 +39,10 @@ public class Day4Part2 implements GenericDay {
         var right = ids[1].split("-");
         if (right.length != 2) throw new InputMismatchException("Expected one - to split at.");
 
-        var range1 = new Pair<>(Integer.parseInt(left[0]), Integer.parseInt(left[1]));
-        var range2 = new Pair<>(Integer.parseInt(right[0]), Integer.parseInt(right[1]));
-
-        // Rebind helps with reasoning about the logic aka I am doing this for readability.
-        var rangeChoice = range1.left() < range2.left();
-        var lowRange = (rangeChoice) ? range1 : range2;
-        var highRange = (rangeChoice) ? range2 : range1;
-
-        if (highRange.left() - lowRange.right() <= 0) {
+        var leftSideDifference = Integer.parseInt(left[0]) - Integer.parseInt(right[0]);
+        var rightSideDifference = Integer.parseInt(left[1]) - Integer.parseInt(right[1]);
+        if (leftSideDifference <= 0 && rightSideDifference >= 0
+                || leftSideDifference >= 0 && rightSideDifference <= 0) {
             answer ++;
         }
     }
@@ -62,7 +56,7 @@ public class Day4Part2 implements GenericDay {
 
 
     public static void main(String[] args) {
-        var day = new Day4Part2(RunType.Q);
+        var day = new Day4Part1(RunType.Q);
         System.out.println(day.answer);
     }
 

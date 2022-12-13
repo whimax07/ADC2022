@@ -1,4 +1,4 @@
-package days;
+package days.d1_d10;
 
 import utils.GenericDay;
 import utils.ReadLines;
@@ -6,7 +6,6 @@ import utils.RunType;
 import utils.v2i;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.InputMismatchException;
 import java.util.stream.IntStream;
