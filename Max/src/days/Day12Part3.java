@@ -198,7 +198,7 @@ public class Day12Part3 implements GenericDay {
                         }
                     }
 
-                    // If the counts are different then the current cell is adjacent to a cell that made progress.
+                    // If the counts are the same then none of the cells adjacent to `current` made progress.
                     if (startingNextLooksCount == nextLooks.size()) {
                         current.proneNode();
                     }
