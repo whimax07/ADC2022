@@ -1,9 +1,12 @@
 package days.d1_d10;
 
-import utils.*;
+import utils.GenericDay;
+import utils.ReadLines;
+import utils.RunType;
+import utils.v2i;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashSet;
 
 public class Day9Part1 implements GenericDay {
 
