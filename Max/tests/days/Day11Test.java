@@ -5,10 +5,8 @@ import utils.RunType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class Day11Test {
 
@@ -23,8 +21,11 @@ public class Day11Test {
 
     @Test
     void part2() {
-        fail("\n\n===================  Need to add.  ===================\n");
-        assertEquals(0, new Day11Part2(RunType.TEST).getAnswer());
+//        fail("\n\n===================  Need to add.  ===================\n");
+        assertEquals(
+                new ArrayList<>(Arrays.asList(52166, 47830, 1938, 52013)),
+                new Day11Part2(RunType.TEST).getAnswer()
+        );
     }
 
 }
