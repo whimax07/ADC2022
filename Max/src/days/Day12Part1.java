@@ -42,13 +42,6 @@ public class Day12Part1 implements GenericDay {
 
 
 
-    public static void main(String[] args) {
-        var day = new Day12Part1(RunType.Q);
-        System.out.println(day.answer);
-    }
-
-
-
     private static class Grid {
 
         private final ArrayList<ArrayList<Integer>> grid = new ArrayList<>();
@@ -188,6 +181,13 @@ public class Day12Part1 implements GenericDay {
             System.out.println();
         }
 
+    }
+
+
+
+    public static void main(String[] args) {
+        var day = new Day12Part1(RunType.Q);
+        System.out.println(day.answer);
     }
 
 }

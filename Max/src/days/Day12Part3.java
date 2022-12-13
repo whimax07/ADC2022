@@ -40,13 +40,6 @@ public class Day12Part3 implements GenericDay {
 
 
 
-    public static void main(String[] args) {
-        var day = new Day12Part3(RunType.Q);
-        System.out.println(day.answer);
-    }
-
-
-
     private static class PathTreeNode extends ManyLeafTree<v2i> {
 
         public PathTreeNode(PathTreeNode parent, v2i loc) {
@@ -314,6 +307,13 @@ public class Day12Part3 implements GenericDay {
             System.out.println();
         }
 
+    }
+
+
+
+    public static void main(String[] args) {
+        var day = new Day12Part3(RunType.Q);
+        System.out.println(day.answer);
     }
 
 }

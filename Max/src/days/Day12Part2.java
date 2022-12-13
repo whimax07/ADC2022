@@ -42,12 +42,6 @@ public class Day12Part2 implements GenericDay {
 
 
 
-    public static void main(String[] args) {
-        var day = new Day12Part2(RunType.Q);
-        System.out.println(day.answer);
-    }
-
-
     /**
      * To make this a super set of part 1 make {@link Grid#findRoute()} take a predicate function as an argument that
      * determines if a point on the grid is another start point. For part one pass a function that always returns false.
@@ -228,6 +222,13 @@ public class Day12Part2 implements GenericDay {
             System.out.println();
         }
 
+    }
+
+
+
+    public static void main(String[] args) {
+        var day = new Day12Part2(RunType.Q);
+        System.out.println(day.answer);
     }
 
 }
