@@ -14,8 +14,8 @@ public class Day14Test {
 
     @Test
     void part2() {
-        assert false;  // ===================  Need to add.  ===================
-        assertEquals(140, new Day14Part2(RunType.TEST).getAnswer());
+//        assert false;  // ===================  Need to add.  ===================
+        assertEquals(93, new Day14Part2(RunType.TEST).getAnswer());
     }
 
 }
