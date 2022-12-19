@@ -12,29 +12,31 @@ public class Day16Coomon {
 
         private Node entrance = null;
 
+        private int maxRate = -1;
+
 
 
         public void readLine(String line) {
-            var pos = "Valve ".length();
-            var nodeName = line.substring(pos, pos + 2);
+            var stringPos = "Valve ".length();
+            var nodeName = line.substring(stringPos, stringPos + 2);
             var node = nameToNode.computeIfAbsent(nodeName, Node::new);
             if (nodeName.equals("AA")) entrance = node;
-            pos += 2;
+            stringPos += 2;
 
 
-            pos += " has flow rate=".length();
-            var rateString = line.substring(pos);
+            stringPos += " has flow rate=".length();
+            final Pattern ratePattern = Pattern.compile("^.+?(\\d+).+");
+            var rateMatch = ratePattern.matcher(line);
+            var rateString = rateMatch.group(1);
 
-            final Pattern ratePattern = Pattern.compile("^(\\d+).+");
-            var rateMatch = ratePattern.matcher(rateString);
-            rateString = rateMatch.group(1);
-
-            node.assignRate(Integer.parseInt(rateString));
-            pos += rateString.length();
+            int rate = Integer.parseInt(rateString);
+            node.assignRate(rate);
+            maxRate = Integer.max(maxRate, rate);
+            stringPos += rateString.length();
 
 
-            pos += "; tunnels lead to valves ".length();
-            var destinations = line.substring(pos).split(", ");
+            stringPos += "; tunnels lead to valves ".length();
+            var destinations = line.substring(stringPos).split(", ");
             for (var destination : destinations) {
                 var destNode = nameToNode.computeIfAbsent(destination, Node::new);
                 node.addDestination(destNode);
@@ -45,13 +47,68 @@ public class Day16Coomon {
             return entrance;
         }
 
+        public int getMaxRate() {
+            return maxRate;
+        }
+
+    }
+
+    public static class Path {
+
+        private final int maxRate;
+
+        private final ArrayList<Node> path = new ArrayList<>();
+
+        private int growthRate = 0;
+
+        private int currentlyArchived = 0;
+
+        private int lastTime = 0;
+
+
+
+        public Path(int maxRate) {
+            this.maxRate = maxRate;
+        }
+
+        public boolean canExceed(int currentBest, int timeRemaining) {
+            assert(lastTime + timeRemaining <= 30);
+            currentlyArchived += (30 - lastTime - timeRemaining) * growthRate;
+            var steadyStateEnd = currentlyArchived + growthRate * timeRemaining;
+
+            // NOTE(Max): This is a large over estimation, but it is fast to compute. I don't have a good idea of how
+            // commutative complexity compares to earlier path rejection.
+            var maxPossibleExtra = (maxRate * (maxRate + 1)) * timeRemaining;
+
+            return currentBest < steadyStateEnd + maxPossibleExtra;
+        }
+
+        public Path openValve(Node valve, int currentTime) {
+            currentlyArchived += growthRate * (currentTime - lastTime);
+            growthRate += valve.rate;
+
+            lastTime = currentTime;
+            path.add(valve);
+
+            return this;
+        }
+
+        public Path visitValue(Node value) {
+            path.add(value);
+            return this;
+        }
+
+        public ArrayList<Node> getPath() {
+            return path;
+        }
+
     }
 
     public static class Node {
 
         private int rate = -1;
 
-        private ArrayList<Node> destinations = new ArrayList<>();
+        private final ArrayList<Node> destinations = new ArrayList<>();
 
 
 
