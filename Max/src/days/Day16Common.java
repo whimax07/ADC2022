@@ -1,9 +1,6 @@
 package days;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.InputMismatchException;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class Day16Common {
@@ -12,9 +9,9 @@ public class Day16Common {
 
         private final HashMap<String, Node> nameToNode = new HashMap<>();
 
-        private Node entrance = null;
+        private final ArrayList<Integer> rates = new ArrayList<>();
 
-        private int maxRate = -1;
+        private Node entrance = null;
 
 
 
@@ -33,7 +30,7 @@ public class Day16Common {
             var rateString = matcher.group(2);
             int rate = Integer.parseInt(rateString);
             node.assignRate(rate);
-            maxRate = Integer.max(maxRate, rate);
+            rates.add(rate);
 
             var destinations = matcher.group(3).split(", ");
             for (var destination : destinations) {
@@ -54,15 +51,15 @@ public class Day16Common {
             return entrance;
         }
 
-        public int getMaxRate() {
-            return maxRate;
+        public List<Integer> getRates() {
+            return rates;
         }
 
     }
 
     public static class Path {
 
-        private final int maxRate;
+        private final List<Integer> rates;
 
         private final ArrayList<Node> path = new ArrayList<>();
 
@@ -76,20 +73,32 @@ public class Day16Common {
 
 
 
-        public Path(int maxRate) {
-            this.maxRate = maxRate;
+        public Path(List<Integer> rates) {
+            this.rates = new LinkedList<>(rates);
         }
 
-        public boolean canExceed(int currentBest, int timeRemaining) {
-            assert(lastTime + timeRemaining <= 30);
-            currentlyArchived += (30 - lastTime - timeRemaining) * growthRate;
-            var steadyStateEnd = currentlyArchived + growthRate * timeRemaining;
+        public boolean canExceed(int currentBest, int time) {
+            assert(time <= 30);
+            var currently = currentlyArchived + (time - lastTime) * growthRate;
+            var steadyStateEnd = currently + growthRate * (30 - time);
 
-            // NOTE(Max): This is a large over estimation, but it is fast to compute. I don't have a good idea of how
-            // commutative complexity compares to earlier path rejection.
-            var maxPossibleExtra = (maxRate * (maxRate + 1)) * timeRemaining;
+            var maxRemaining = 0;
+            var rateItr = rates.iterator();
 
-            return currentBest < steadyStateEnd + maxPossibleExtra;
+            for (int i = 30 - time; i > 0; i -= 2) {
+                if (!rateItr.hasNext()) break;
+
+                var rate = rateItr.next();
+                maxRemaining += rate * i;
+            }
+
+            return currentBest < steadyStateEnd + maxRemaining;
+        }
+
+        public int calculateEndValue() {
+            currentlyArchived += (30 - lastTime) * growthRate;
+            lastTime = 30;
+            return currentlyArchived;
         }
 
         public Path openValve(Node valve, int currentTime) {
@@ -99,6 +108,7 @@ public class Day16Common {
             lastTime = currentTime;
             path.add(valve);
             openValues.add(valve);
+            rates.remove((Object) valve.rate);
 
             return this;
         }
@@ -132,11 +142,14 @@ public class Day16Common {
             return currentlyArchived;
         }
 
+        public boolean hasOpenedAllValves() {
+            return rates.isEmpty();
+        }
 
 
 
         public Path copy() {
-            var copy = new Path(maxRate);
+            var copy = new Path(rates);
             copy.path.addAll(path);
             copy.openValues.addAll(openValues);
             copy.growthRate = growthRate;

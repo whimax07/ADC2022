@@ -13,7 +13,7 @@ public class Day16Part1 implements GenericDay {
 
     private final long answer;
 
-    private final int maxRate;
+    private final List<Integer> rates;
 
     private final Node entrance;
 
@@ -35,10 +35,11 @@ public class Day16Part1 implements GenericDay {
 
         if (!graph.allDestinationsMapped()) throw new RuntimeException();
 
-        maxRate = graph.getMaxRate();
+        rates = graph.getRates();
+        rates.sort(Integer::compareTo);
         entrance = graph.getEntrance();
 
-        bestPath = new Baseline().getBaseline();
+        bestPath = new Baseline(rates).getBaseline();
         System.out.println("Baseline Path: " + bestPath);
 
         findBestPath();
@@ -48,7 +49,7 @@ public class Day16Part1 implements GenericDay {
 
     private void findBestPath() {
         branches.add(new Branch(
-                new Path(maxRate),
+                new Path(rates),
                 entrance,
                 0
         ));
@@ -65,6 +66,14 @@ public class Day16Part1 implements GenericDay {
         var path = branch.path;
 
         var destinations = currentNode.getDestinations();
+
+        if (path.hasOpenedAllValves()) {
+            var endValue = path.calculateEndValue();
+            if (endValue > bestPath.getArchived()) {
+                bestPath = path;
+                return;
+            }
+        }
 
         if (currentNode.getRate() > 0 && path.hasNotOpenedValve(currentNode)) {
             var newPath = path.copy();
@@ -84,9 +93,8 @@ public class Day16Part1 implements GenericDay {
             return;
         }
 
+        if (!path.canExceed(bestPath.getArchived(), time)) return;
         for (var dest : destinations) {
-            if (!path.canExceed(bestPath.getArchived(), 30 - time)) continue;
-
             var newPath = path.copy();
             newPath.visitValve(dest);
 
@@ -109,13 +117,15 @@ public class Day16Part1 implements GenericDay {
 
         private int time = 0;
 
-        private final Path path = new Path(maxRate);
+        private final Path path;
 
         private Node currentNode = entrance;
 
 
 
-        public Baseline() {
+        public Baseline(List<Integer> rates) {
+            path = new Path(rates);
+
             while (time <= 30) {
                 tick();
             }
