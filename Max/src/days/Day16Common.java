@@ -3,6 +3,7 @@ package days;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.InputMismatchException;
 import java.util.regex.Pattern;
 
 public class Day16Common {
@@ -18,27 +19,23 @@ public class Day16Common {
 
 
         public void readLine(String line) {
-            var stringPos = "Valve ".length();
-            var nodeName = line.substring(stringPos, stringPos + 2).trim();
-            var node = nameToNode.computeIfAbsent(nodeName, Node::new);
-            if (nodeName.equals("AA")) entrance = node;
-            stringPos += 2;
+            final var pattern = Pattern.compile(
+                    "Valve (\\p{Alpha}{2}) has flow rate=(\\d+); tunnels? leads? to valves? ((?:\\w{2}(?:, )?)+)"
+            );
+            var matcher = pattern.matcher(line);
 
+            if (!matcher.matches()) throw new RuntimeException();
+            if (matcher.groupCount() != 3) throw new InputMismatchException("Regex capture failure.");
 
-            stringPos += " has flow rate=".length();
-            final Pattern ratePattern = Pattern.compile(".+(\\d+).+");
-            var rateMatch = ratePattern.matcher(line);
-            if (!rateMatch.matches()) throw new RuntimeException();
-            var rateString = rateMatch.group(1);
+            var node = nameToNode.computeIfAbsent(matcher.group(1), Node::new);
+            if (matcher.group(1).equals("AA")) entrance = node;
 
+            var rateString = matcher.group(2);
             int rate = Integer.parseInt(rateString);
             node.assignRate(rate);
             maxRate = Integer.max(maxRate, rate);
-            stringPos += rateString.length();
 
-
-            stringPos += "; tunnels lead to valves ".length();
-            var destinations = line.substring(stringPos).split(", ");
+            var destinations = matcher.group(3).split(", ");
             for (var destination : destinations) {
                 var destNode = nameToNode.computeIfAbsent(destination.trim(), Node::new);
                 node.addDestination(destNode);
