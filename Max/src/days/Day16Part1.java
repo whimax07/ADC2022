@@ -37,7 +37,6 @@ public class Day16Part1 implements GenericDay {
         entrance = graph.getEntrance();
 
         bestPath = new Baseline(rates).getBaseline();
-        System.out.println("Baseline Path: " + bestPath);
 
         findBestPath();
 

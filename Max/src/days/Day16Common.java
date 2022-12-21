@@ -155,6 +155,152 @@ public class Day16Common {
 
     }
 
+    public static class Route {
+
+        private final ArrayList<Node> manRoute = new ArrayList<>();
+
+        private final ArrayList<Node> elephantRoute = new ArrayList<>();
+
+        private final List<Integer> rates;
+
+        private final HashSet<Node> openValues = new HashSet<>();
+
+        private int growthRate = 0;
+
+        private int currentlyArchived = 0;
+
+        private int lastTime = 0;
+
+
+
+        public Route(List<Integer> rates) {
+            this.rates = new LinkedList<>(rates);
+        }
+
+        public Route(List<Integer> rates, Node entrance) {
+            this.rates = new LinkedList<>(rates);
+            manRoute.add(entrance);
+            elephantRoute.add(entrance);
+            rates.remove((Object) 0);
+        }
+
+
+
+        public void update(Node man, Node elephant, int time) {
+            var lastMan = manRoute.get(manRoute.size() - 1);
+            var lastElephant = elephantRoute.get(elephantRoute.size() - 1);
+
+            if (lastMan.equals(man) && lastElephant.equals(elephant)) {
+                assert(!man.equals(elephant));
+
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += man.rate;
+                growthRate += elephant.rate;
+                rates.remove((Object) man.rate);
+                rates.remove((Object) elephant.rate);
+                openValues.add(man);
+                openValues.add(elephant);
+                return;
+            }
+
+            if (lastMan.equals(man)) {
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += man.rate;
+                rates.remove((Object) man.rate);
+                openValues.add(man);
+                elephantRoute.add(elephant);
+                return;
+            }
+
+            if (lastElephant.equals(elephant)) {
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += elephant.rate;
+                rates.remove((Object) elephant.rate);
+                openValues.add(elephant);
+                manRoute.add(man);
+                return;
+            }
+
+            manRoute.add(man);
+            elephantRoute.add(elephant);
+        }
+
+        public boolean canExceed(int currentBest, int time) {
+            var currently = currentlyArchived + (time - lastTime) * growthRate;
+            var steadyStateEnd = currently + growthRate * (30 - time);
+
+            var maxRemaining = 0;
+            var rateItr = rates.iterator();
+
+            for (int i = 26 - time; i > 0; i -= 2) {
+                if (!rateItr.hasNext()) break;
+                var rate = rateItr.next();
+                maxRemaining += rate * i;
+
+                if (!rateItr.hasNext()) break;
+                rate = rateItr.next();
+                maxRemaining += rate * i;
+            }
+
+            return currentBest < steadyStateEnd + maxRemaining;
+        }
+
+        public boolean isFirstVisit(Node valve) {
+            return !(elephantRoute.contains(valve) || manRoute.contains(valve));
+        }
+
+        public boolean isShut(Node valve) {
+            return !openValues.contains(valve);
+        }
+
+        public boolean allWorkingValvesOpen() {
+            return rates.isEmpty() || rates.get(0) == 0;
+        }
+
+        public int calculateFinalValue() {
+            currentlyArchived += (26 - lastTime) * growthRate;
+            return currentlyArchived;
+        }
+
+        public int getArchived() {
+            return currentlyArchived;
+        }
+
+        public Node getLastMan() {
+            return manRoute.get(manRoute.size() - 1);
+        }
+
+        public Node getLastElephant() {
+            return elephantRoute.get(elephantRoute.size() - 1);
+        }
+
+
+
+        public String displayString() {
+            return "Route{"
+                    + " Archived:" + currentlyArchived
+                    + " ManPath:" + manRoute
+                    + " ElephantPath:" + elephantRoute
+                    + " }";
+        }
+
+        public Route copy() {
+            var copy = new Route(rates);
+            copy.manRoute.addAll(manRoute);
+            copy.elephantRoute.addAll(elephantRoute);
+            copy.openValues.addAll(openValues);
+            copy.growthRate = growthRate;
+            copy.currentlyArchived = currentlyArchived;
+            copy.lastTime = lastTime;
+
+            return copy;
+        }
+
+    }
+
     public static class Node {
 
         private final String name;
