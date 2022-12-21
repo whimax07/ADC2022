@@ -21,10 +21,6 @@ public class Day16Part1 implements GenericDay {
 
     private final Stack<Branch> branches = new Stack<>();
 
-    // TODO(Max): We can also add a way to reject paths if we detect a cycle and have been on a more optimum route
-    //  before.
-//    private HashMap<Node, Integer> activatedValues = new HashMap<>();
-
 
 
     public Day16Part1(RunType runType) {
@@ -37,6 +33,7 @@ public class Day16Part1 implements GenericDay {
 
         rates = graph.getRates();
         rates.sort(Integer::compareTo);
+        Collections.reverse(rates);
         entrance = graph.getEntrance();
 
         bestPath = new Baseline(rates).getBaseline();
@@ -51,7 +48,7 @@ public class Day16Part1 implements GenericDay {
         branches.add(new Branch(
                 new Path(rates),
                 entrance,
-                0
+                1
         ));
 
         while (!branches.isEmpty()) {
@@ -60,51 +57,42 @@ public class Day16Part1 implements GenericDay {
         }
     }
 
-    private void followBranch(Branch branch) {
-        var time = branch.time;
-        var currentNode = branch.currentNode;
-        var path = branch.path;
-
-        var destinations = currentNode.getDestinations();
-
-        if (path.hasOpenedAllValves()) {
-            var endValue = path.calculateEndValue();
-            if (endValue > bestPath.getArchived()) {
-                bestPath = path;
-                return;
-            }
-        }
-
-        if (currentNode.getRate() > 0 && path.hasNotOpenedValve(currentNode)) {
-            var newPath = path.copy();
-            newPath.openValve(currentNode, time);
-            move(time + 1, newPath, destinations);
-        }
-
-        move(time, path, destinations);
-    }
-
-    private void move(int time, Path path, ArrayList<Node> destinations) {
-        if (time >= 30) {
-            if (path.getArchived() > bestPath.getArchived()) {
-                bestPath = path;
-                System.out.println(bestPath);
+    public void followBranch(Branch branch) {
+        assert(branch.time <= 30);
+        if (branch.path.hasOpenedAllValves() || branch.time == 30) {
+            int endVal = branch.path.calculateEndValue();
+            if (endVal > bestPath.getArchived()) {
+                bestPath = branch.path;
             }
             return;
         }
 
-        if (!path.canExceed(bestPath.getArchived(), time)) return;
-        for (var dest : destinations) {
-            var newPath = path.copy();
-            newPath.visitValve(dest);
+        if (!branch.path.canExceed(bestPath.getArchived(), branch.time)) return;
+
+        for (var destination : branch.currentNode.getDestinations()) {
+            var newPath = branch.path.copy();
+            newPath.visitValve(destination);
 
             branches.add(new Branch(
                     newPath,
-                    dest,
-                    time + 1
+                    destination,
+                    branch.time + 1
+            ));
+        }
+
+        if (branch.path.hasNotOpenedValve(branch.currentNode) && branch.currentNode.getRate() > 0) {
+            var newPath = branch.path.copy();
+            newPath.openValve(branch.currentNode, branch.time);
+
+            // This branch is checked if it can exceed the current best when it is passed to this function as `branch`.
+            branches.add(new Branch(
+                    newPath,
+                    branch.currentNode,
+                    branch.time + 1
             ));
         }
     }
+
 
 
     public long getAnswer() {
@@ -115,7 +103,7 @@ public class Day16Part1 implements GenericDay {
 
     private class Baseline {
 
-        private int time = 0;
+        private int time = 1;
 
         private final Path path;
 
@@ -132,7 +120,7 @@ public class Day16Part1 implements GenericDay {
         }
 
         private void tick() {
-            if (currentNode.getRate() != 0 && !path.hasOpenedValve(currentNode)) {
+            if (currentNode.getRate() != 0 && path.hasNotOpenedValve(currentNode)) {
                 path.openValve(currentNode, time);
                 time ++;
                 return;
@@ -154,10 +142,9 @@ public class Day16Part1 implements GenericDay {
 
             // Just pick a valve.
             if (next.isEmpty()) {
-                // Choose a random valve in the hope of escaping loops.
-                final Random random = new Random();
                 var destinations = currentNode.getDestinations();
-                Node randomValve = destinations.get(random.nextInt(destinations.size()));
+                var index = time % destinations.size();
+                Node randomValve = destinations.get(index);
                 next = Optional.ofNullable(randomValve);
             }
 

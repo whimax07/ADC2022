@@ -101,7 +101,7 @@ public class Day16Common {
             return currentlyArchived;
         }
 
-        public Path openValve(Node valve, int currentTime) {
+        public void openValve(Node valve, int currentTime) {
             currentlyArchived += growthRate * (currentTime - lastTime);
             growthRate += valve.rate;
 
@@ -109,25 +109,14 @@ public class Day16Common {
             path.add(valve);
             openValues.add(valve);
             rates.remove((Object) valve.rate);
-
-            return this;
         }
 
-        public Path visitValve(Node valve) {
+        public void visitValve(Node valve) {
             path.add(valve);
-            return this;
-        }
-
-        public boolean hasVisitedValve(Node valve) {
-            return path.contains(valve);
         }
 
         public boolean hasNotVisitedValve(Node valve) {
             return !path.contains(valve);
-        }
-
-        public boolean hasOpenedValve(Node valve) {
-            return openValues.contains(valve);
         }
 
         public boolean hasNotOpenedValve(Node valve) {
