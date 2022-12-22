@@ -8,7 +8,7 @@ import utils.RunType;
 import java.io.File;
 import java.util.*;
 
-public class Day16Part2 implements GenericDay {
+public class Day16Part2Attempt1 implements GenericDay {
 
     private final List<Integer> rates;
 
@@ -24,7 +24,7 @@ public class Day16Part2 implements GenericDay {
 
 
 
-    public Day16Part2(RunType runType) {
+    public Day16Part2Attempt1(RunType runType) {
         File inputFile = getFile(runType, 16);
 
         Day16Common.Graph graph = new Day16Common.Graph();
@@ -378,7 +378,7 @@ public class Day16Part2 implements GenericDay {
 
 
     public static void main(String[] args) {
-        var day = new Day16Part2(RunType.Q);
+        var day = new Day16Part2Attempt1(RunType.Q);
         System.out.println(day.answer);
     }
 
