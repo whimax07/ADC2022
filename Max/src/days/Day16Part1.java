@@ -1,6 +1,6 @@
 package days;
 
-import days.Day16Common.Node;
+import days.Day16Common.Valve;
 import days.Day16Common.Path;
 import utils.GenericDay;
 import utils.ReadLines;
@@ -15,7 +15,7 @@ public class Day16Part1 implements GenericDay {
 
     private final List<Integer> rates;
 
-    private final Node entrance;
+    private final Valve entrance;
 
     private Path bestPath;
 
@@ -68,7 +68,7 @@ public class Day16Part1 implements GenericDay {
 
         if (!branch.path.canExceed(bestPath.getArchived(), branch.time)) return;
 
-        for (var destination : branch.currentNode.getDestinations()) {
+        for (var destination : branch.currentValve.getDestinations()) {
             var newPath = branch.path.copy();
             newPath.visitValve(destination);
 
@@ -79,14 +79,14 @@ public class Day16Part1 implements GenericDay {
             ));
         }
 
-        if (branch.path.hasNotOpenedValve(branch.currentNode) && branch.currentNode.getRate() > 0) {
+        if (branch.path.hasNotOpenedValve(branch.currentValve) && branch.currentValve.getRate() > 0) {
             var newPath = branch.path.copy();
-            newPath.openValve(branch.currentNode, branch.time);
+            newPath.openValve(branch.currentValve, branch.time);
 
             // This branch is checked if it can exceed the current best when it is passed to this function as `branch`.
             branches.add(new Branch(
                     newPath,
-                    branch.currentNode,
+                    branch.currentValve,
                     branch.time + 1
             ));
         }
@@ -106,7 +106,7 @@ public class Day16Part1 implements GenericDay {
 
         private final Path path;
 
-        private Node currentNode = entrance;
+        private Valve currentValve = entrance;
 
 
 
@@ -119,37 +119,37 @@ public class Day16Part1 implements GenericDay {
         }
 
         private void tick() {
-            if (currentNode.getRate() != 0 && path.hasNotOpenedValve(currentNode)) {
-                path.openValve(currentNode, time);
+            if (currentValve.getRate() != 0 && path.hasNotOpenedValve(currentValve)) {
+                path.openValve(currentValve, time);
                 time ++;
                 return;
             }
 
             // Find the best next valve to visit.
-            var next = currentNode.getDestinations().stream()
+            var next = currentValve.getDestinations().stream()
                     .filter(path::hasNotVisitedValve)
                     .filter(path::hasNotOpenedValve)
                     .filter(x -> x.getRate() > 0)
-                    .max(Comparator.comparing(Node::getRate));
+                    .max(Comparator.comparing(Valve::getRate));
 
             // If there isn't a best choose one we haven't been to before.
             if (next.isEmpty()) {
-                next = currentNode.getDestinations().stream()
+                next = currentValve.getDestinations().stream()
                         .filter(path::hasNotVisitedValve)
                         .findAny();
             }
 
             // Just pick a valve.
             if (next.isEmpty()) {
-                var destinations = currentNode.getDestinations();
+                var destinations = currentValve.getDestinations();
                 var index = time % destinations.size();
-                Node randomValve = destinations.get(index);
+                Valve randomValve = destinations.get(index);
                 next = Optional.ofNullable(randomValve);
             }
 
             var nextValve = next.orElseThrow();
 
-            currentNode = nextValve;
+            currentValve = nextValve;
             path.visitValve(nextValve);
             time ++;
         }
@@ -160,7 +160,7 @@ public class Day16Part1 implements GenericDay {
 
     }
 
-    private record Branch(Path path, Node currentNode, int time) {  }
+    private record Branch(Path path, Valve currentValve, int time) {  }
 
 
 

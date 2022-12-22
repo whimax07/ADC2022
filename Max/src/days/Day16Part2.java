@@ -1,7 +1,6 @@
 package days;
 
-import days.Day16Common.Node;
-import days.Day16Common.Route;
+import days.Day16Common.Valve;
 import utils.GenericDay;
 import utils.ReadLines;
 import utils.RunType;
@@ -13,7 +12,7 @@ public class Day16Part2 implements GenericDay {
 
     private final List<Integer> rates;
 
-    private final Node entrance;
+    private final Valve entrance;
 
     private Route bestRoute;
 
@@ -38,8 +37,7 @@ public class Day16Part2 implements GenericDay {
         entrance = graph.getEntrance();
 
         bestRoute = new Baseline(rates).getBaseline();
-        System.out.println(bestRoute.displayString());
-
+        System.out.println("baseline: " + bestRoute.displayString());
         findBestPath();
 
         answer = bestRoute.getArchived();
@@ -58,9 +56,12 @@ public class Day16Part2 implements GenericDay {
     }
 
     private void followBranch(Branch branch) {
-        if (++count == 500) {
+        if (++count == 500000) {
             count = 0;
-            System.out.println(branch.route.displayString());
+            System.out.println(
+                    "Rejection rate: " + (double) Route.rejectCount / (double) Route.rejectChecks
+                    + " Mean rejection time: " + (double) Route.rejectionTime / (double) Route.rejectCount
+            );
         }
 
 
@@ -70,6 +71,9 @@ public class Day16Part2 implements GenericDay {
             if (endValue > bestRoute.getArchived()) {
                 bestRoute = branch.route;
                 System.out.println(bestRoute.displayString());
+                Route.rejectCount = 0;
+                Route.rejectionTime = 0;
+                Route.rejectChecks = 0;
             }
 
             return;
@@ -78,8 +82,8 @@ public class Day16Part2 implements GenericDay {
         if (!branch.route.canExceed(bestRoute.getArchived(), branch.time)) return;
 
         var route = branch.route;
-        Node lastMan = route.getLastMan();
-        Node lastElephant = route.getLastElephant();
+        Valve lastMan = route.getLastMan();
+        Valve lastElephant = route.getLastElephant();
 
         // Progress both.
         for (var eDest : lastElephant.getDestinations()) {
@@ -181,12 +185,12 @@ public class Day16Part2 implements GenericDay {
             time ++;
         }
 
-        private Node bestNextValve(Node current, Node occupied) {
+        private Valve bestNextValve(Valve current, Valve occupied) {
             var next = current.getDestinations().stream()
                     .filter(x -> !occupied.equals(x))
                     .filter(route::isShut)
                     .filter(x -> x.getRate() > 0)
-                    .max(Comparator.comparing(Node::getRate));
+                    .max(Comparator.comparing(Valve::getRate));
 
             if (next.isEmpty()) {
                 next = current.getDestinations().stream()
@@ -208,6 +212,165 @@ public class Day16Part2 implements GenericDay {
 
         public Route getBaseline() {
             return route;
+        }
+
+    }
+
+    public static class Route {
+
+        private final ArrayList<Valve> manRoute = new ArrayList<>();
+
+        private final ArrayList<Valve> elephantRoute = new ArrayList<>();
+
+        private final List<Integer> rates;
+
+        private final HashSet<Valve> openValues = new HashSet<>();
+
+        private int growthRate = 0;
+
+        private int currentlyArchived = 0;
+
+        private int lastTime = 0;
+
+        public static long rejectCount = 0;
+
+        public static long rejectChecks = 0;
+
+        public static long rejectionTime = 0;
+
+
+
+        public Route(List<Integer> rates) {
+            this.rates = new LinkedList<>(rates);
+        }
+
+        public Route(List<Integer> rates, Valve entrance) {
+            this.rates = new LinkedList<>(rates);
+            manRoute.add(entrance);
+            elephantRoute.add(entrance);
+            rates.remove((Object) 0);
+        }
+
+
+
+        public void update(Valve man, Valve elephant, int time) {
+            var lastMan = manRoute.get(manRoute.size() - 1);
+            var lastElephant = elephantRoute.get(elephantRoute.size() - 1);
+
+            if (lastMan.equals(man) && lastElephant.equals(elephant)) {
+                assert(!man.equals(elephant));
+
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += man.getRate();
+                growthRate += elephant.getRate();
+                rates.remove((Object) man.getRate());
+                rates.remove((Object) elephant.getRate());
+                openValues.add(man);
+                openValues.add(elephant);
+                return;
+            }
+
+            if (lastMan.equals(man)) {
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += man.getRate();
+                rates.remove((Object) man.getRate());
+                openValues.add(man);
+                elephantRoute.add(elephant);
+                return;
+            }
+
+            if (lastElephant.equals(elephant)) {
+                currentlyArchived += growthRate * (time - lastTime);
+                lastTime = time;
+                growthRate += elephant.getRate();
+                rates.remove((Object) elephant.getRate());
+                openValues.add(elephant);
+                manRoute.add(man);
+                return;
+            }
+
+            manRoute.add(man);
+            elephantRoute.add(elephant);
+        }
+
+        public boolean canExceed(int currentBest, int time) {
+            var currently = currentlyArchived + (time - lastTime) * growthRate;
+            var steadyStateEnd = currently + growthRate * (30 - time);
+
+            var maxRemaining = 0;
+            var rateItr = rates.iterator();
+
+            for (int i = 26 - time; i > 0; i -= 2) {
+                if (!rateItr.hasNext()) break;
+                var rate = rateItr.next();
+                maxRemaining += rate * i;
+
+                if (!rateItr.hasNext()) break;
+                rate = rateItr.next();
+                maxRemaining += rate * i;
+            }
+
+
+            boolean out = currentBest < steadyStateEnd + maxRemaining;
+            rejectChecks ++;
+            if (!out) {
+                rejectCount++;
+                rejectionTime += time;
+            }
+            return out;
+        }
+
+        public boolean isFirstVisit(Valve valve) {
+            return !(elephantRoute.contains(valve) || manRoute.contains(valve));
+        }
+
+        public boolean isShut(Valve valve) {
+            return !openValues.contains(valve);
+        }
+
+        public boolean allWorkingValvesOpen() {
+            return rates.isEmpty() || rates.get(0) == 0;
+        }
+
+        public int calculateFinalValue() {
+            currentlyArchived += (26 - lastTime) * growthRate;
+            return currentlyArchived;
+        }
+
+        public int getArchived() {
+            return currentlyArchived;
+        }
+
+        public Valve getLastMan() {
+            return manRoute.get(manRoute.size() - 1);
+        }
+
+        public Valve getLastElephant() {
+            return elephantRoute.get(elephantRoute.size() - 1);
+        }
+
+
+
+        public String displayString() {
+            return "Route{"
+                    + " Archived:" + currentlyArchived
+                    + " ManPath:" + manRoute
+                    + " ElephantPath:" + elephantRoute
+                    + " }";
+        }
+
+        public Route copy() {
+            var copy = new Route(rates);
+            copy.manRoute.addAll(manRoute);
+            copy.elephantRoute.addAll(elephantRoute);
+            copy.openValues.addAll(openValues);
+            copy.growthRate = growthRate;
+            copy.currentlyArchived = currentlyArchived;
+            copy.lastTime = lastTime;
+
+            return copy;
         }
 
     }
