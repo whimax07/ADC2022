@@ -24,6 +24,9 @@ public class Day16Part2Attempt2 implements GenericDay {
     //  So to travel to a new node (travel and open a valve) and gain benefits you need at least three units of time.
     private static final int EFFECTIVE_END_TIME = 26 - 2;
 
+    private final ArrayList<Node> testAnswerMan = new ArrayList<>();
+    private final ArrayList<Node> testAnswerElp = new ArrayList<>();
+
 
 
     public Day16Part2Attempt2(RunType runType) {
@@ -35,8 +38,18 @@ public class Day16Part2Attempt2 implements GenericDay {
         var completeGraph = new Day16Common.CompleteGraph(graph);
         entrance = completeGraph.getEntrance();
         allNodes = completeGraph.getNodes();
+        System.out.println(allNodes);
 
-        bestRoute = new Route(entrance);
+        bestRoute = new Route();
+
+        testAnswerMan.add(entrance);
+        testAnswerMan.add(allNodes.get(0));
+        testAnswerMan.add(allNodes.get(2));
+        testAnswerMan.add(allNodes.get(5));
+        testAnswerElp.add(entrance);
+        testAnswerElp.add(allNodes.get(3));
+        testAnswerElp.add(allNodes.get(1));
+        testAnswerElp.add(allNodes.get(4));
 
         findBestPath();
 
@@ -44,7 +57,14 @@ public class Day16Part2Attempt2 implements GenericDay {
     }
 
     private void findBestPath() {
-        branches.add(new Route(entrance));
+        for (int i = 0; i < allNodes.size(); i++) {
+            var manNode = allNodes.get(i);
+            for (int j = 0; j < i; j++) {
+                var elephantNode = allNodes.get(j);
+
+                branches.add(new Route(entrance, manNode, elephantNode));
+            }
+        }
 
 
         while (!branches.isEmpty()) {
@@ -57,7 +77,7 @@ public class Day16Part2Attempt2 implements GenericDay {
         var elephantEndTime = branch.getElephantEndTime();
         var finished = manEndTime >= EFFECTIVE_END_TIME && elephantEndTime >= EFFECTIVE_END_TIME;
 
-        if (branch.visitedAllNodes() || finished) {
+        if (finished) {
             var endValue = branch.calculateFinalValue();
 
             if (endValue > bestRoute.getArchived()) {
@@ -82,6 +102,16 @@ public class Day16Part2Attempt2 implements GenericDay {
             branch.progressBoth(manEndTime);
             // manEndTime == elephantEndTime.
             genBranches(branch, manEndTime);
+        }
+
+
+        if (branch.visitedAllNodes()) {
+            var endValue = branch.calculateFinalValue();
+
+            if (endValue > bestRoute.getArchived()) {
+                bestRoute = branch;
+                System.out.println("Archived: " + bestRoute.archived + " Man: " + bestRoute.routeMan + " Elephant: " + bestRoute.routeElephant);
+            }
         }
     }
 
@@ -157,11 +187,11 @@ public class Day16Part2Attempt2 implements GenericDay {
 
         private final ArrayList<Node> routeElephant = new ArrayList<>();
 
-        private Node nextMan = entrance;
+        private Node nextMan = null;
 
-        private Node nextElephant = entrance;
+        private Node nextElephant = null;
 
-        private final LinkedList<Node> remainingNodes = new LinkedList<>(allNodes);
+        private final LinkedList<Node> remainingNodes = new LinkedList<>();
 
         private int growthRate = 0;
 
@@ -188,34 +218,32 @@ public class Day16Part2Attempt2 implements GenericDay {
             lastTime = toCopy.lastTime;
         }
 
-        public Route(Node entrance) {
-//            routeMan.add(entrance);
-//            routeElephant.add(entrance);
+        public Route(Node entrance, Node manStart, Node elephantStart) {
+            routeMan.add(entrance);
+            routeElephant.add(entrance);
+
+            remainingNodes.addAll(allNodes);
+
+            setNextMan(manStart);
+            setNextElephant(elephantStart);
+        }
+
+        public Route() {
+
         }
 
 
 
         public int calculateFinalValue() {
+            if (routeMan.equals(testAnswerMan) && routeElephant.equals(testAnswerElp)) {
+                System.out.println("This should be the best.");
+            }
+
             archived += growthRate * (26 - lastTime);
             timeMan = 26;
             timeElephant = 26;
             return archived;
         }
-
-//        public boolean canExceed(int bestScore) {
-//            var mNodes = getCurrentMan().getDistanceMap();
-//            var eNodes = getCurrentElephant().getDistanceMap();
-//
-//            var visited = new HashSet<>(remainingNodes);
-//
-//            var tm = timeMan;
-//            var te = timeElephant;
-//
-//            while (Integer.min(tm, te) < )
-//
-//            assert (false);
-//            return true;
-//        }
 
         public void progressMan(int arriveTime) {
             archived += growthRate * (arriveTime - lastTime);
@@ -229,6 +257,14 @@ public class Day16Part2Attempt2 implements GenericDay {
 
             routeMan.add(nextMan);
             nextMan = null;
+
+            if (routeMan.equals(testAnswerMan) || routeElephant.equals(testAnswerElp)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
+
+            if (routeMan.equals(testAnswerElp) || routeElephant.equals(testAnswerMan)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
         }
 
         public void progressElephant(int arriveTime) {
@@ -243,6 +279,14 @@ public class Day16Part2Attempt2 implements GenericDay {
 
             routeElephant.add(nextElephant);
             nextElephant = null;
+
+            if (routeMan.equals(testAnswerMan) || routeElephant.equals(testAnswerElp)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
+
+            if (routeMan.equals(testAnswerElp) || routeElephant.equals(testAnswerMan)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
         }
 
         public void progressBoth(int arriveTime) {
@@ -253,15 +297,21 @@ public class Day16Part2Attempt2 implements GenericDay {
             lastTime = arriveTime;
 
             if (routeMan.contains(nextMan) || routeElephant.contains(nextElephant)) {
-                if (nextMan != entrance && nextElephant != entrance) {
-                    throw new RuntimeException("Only unused nodes should be passed.");
-                }
+                throw new RuntimeException("Only unused nodes should be passed.");
             }
 
             routeMan.add(nextMan);
             routeElephant.add(nextElephant);
             nextMan = null;
             nextElephant = null;
+
+            if (routeMan.equals(testAnswerMan) || routeElephant.equals(testAnswerElp)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
+
+            if (routeMan.equals(testAnswerElp) || routeElephant.equals(testAnswerMan)) {
+                System.out.println("Man: " + routeMan + " Elephant: " + routeElephant);
+            }
         }
 
 
@@ -284,13 +334,11 @@ public class Day16Part2Attempt2 implements GenericDay {
 
         public int getManEndTime() {
             Integer distance = getCurrentMan().getDistanceMap().get(nextMan);
-            if (distance == null) return timeMan;
             return distance + timeMan;
         }
 
         public int getElephantEndTime() {
             Integer distance = getCurrentElephant().getDistanceMap().get(nextElephant);
-            if (distance == null) return timeElephant;
             return distance + timeElephant;
         }
 

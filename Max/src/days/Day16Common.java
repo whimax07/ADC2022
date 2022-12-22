@@ -109,6 +109,7 @@ public class Day16Common {
 
             var nodeCount = 1;
 
+            // Init the stack with items adjacent to the `start` valve/node.
             var stack = new Stack<Traversal>();
             for (var dest : start.destinations) stack.add(new Traversal(dest, 1));
 
@@ -120,7 +121,8 @@ public class Day16Common {
 
                 if (valveNodeMap.containsKey(traversal.valve)) {
                     var node = valveNodeMap.get(traversal.valve);
-                    startNode.getDistanceMap().put(node, traversal.distance);
+                    // We add one to the distance for the extra work to open a valve.
+                    startNode.getDistanceMap().put(node, traversal.distance + 1);
                     nodeCount ++;
                 }
 
