@@ -80,7 +80,9 @@ public class Day16Common {
             findAllDistances();
 
             entrance = new Node(graph.entrance.name, graph.entrance.rate);
-            getEntrance(graph);
+            valveNodeMap.put(graph.entrance, entrance);
+            findDistances(graph.entrance, nodes.size() + 1);
+            valveNodeMap.remove(graph.entrance);
         }
 
         private void makeNodes() {
@@ -95,11 +97,11 @@ public class Day16Common {
 
         private void findAllDistances() {
             for (var valve : valveNodeMap.keySet()) {
-                findDistances(valve);
+                findDistances(valve, nodes.size());
             }
         }
 
-        private void findDistances(Valve start) {
+        private void findDistances(Valve start, int numNodes) {
             var startNode = valveNodeMap.get(start);
 
             var visitedValves = new HashSet<Valve>();
@@ -110,29 +112,20 @@ public class Day16Common {
             var stack = new Stack<Traversal>();
             for (var dest : start.destinations) stack.add(new Traversal(dest, 1));
 
-            while (!stack.isEmpty() && nodeCount < nodes.size()) {
+            while (!stack.isEmpty() && nodeCount < numNodes) {
                 var traversal = stack.pop();
 
                 if (visitedValves.contains(traversal.valve)) continue;
                 visitedValves.add(traversal.valve);
 
                 if (valveNodeMap.containsKey(traversal.valve)) {
-                    var valveNode = valveNodeMap.get(traversal.valve);
-                    startNode.getDistanceMap().put(valveNode, traversal.distance);
+                    var node = valveNodeMap.get(traversal.valve);
+                    startNode.getDistanceMap().put(node, traversal.distance);
                     nodeCount ++;
                 }
 
                 for (var dest : traversal.valve.destinations) {
                     stack.add(new Traversal(dest, traversal.distance + 1));
-                }
-            }
-        }
-
-        private void getEntrance(Graph graph) {
-            for (var dest : graph.entrance.destinations) {
-                if (dest.rate > 0) {
-                    Node node = valveNodeMap.get(dest);
-                    entrance.getDistanceMap().put(node, node.rate);
                 }
             }
         }
@@ -315,6 +308,10 @@ public class Day16Common {
             return rate;
         }
 
+        @Override
+        public String toString() {
+            return "Node{" + name + '}';
+        }
     }
 
 }
