@@ -8,7 +8,7 @@ public class Day19Common {
 
     public static class BlueprintParser {
 
-        private ArrayList<Blueprint> blueprints = new ArrayList<>();
+        private final ArrayList<Blueprint> blueprints = new ArrayList<>();
 
 
 
@@ -96,6 +96,14 @@ public class Day19Common {
 
     }
 
-    public record Cost(int ore, int clay, int obsidian) {  }
+    public record Cost(int ore, int clay, int obsidian) {
+        public boolean canAfford(Cost cost) {
+            return ore >= cost.ore && clay >= cost.clay && obsidian >= cost.obsidian;
+        }
+
+        public Cost buy(Cost price) {
+            return new Cost(ore - price.ore, clay - price.clay, obsidian - price.obsidian);
+        }
+    }
 
 }
