@@ -13,15 +13,9 @@ public class Day16Test {
     }
 
     @Test
-    void part2Attempt1() {
+    void part2Attempt3() {
 //        assert false;  // ===================  Need to add.  ===================
-        assertEquals(1707, new Day16Part2Attempt1(RunType.TEST).getAnswer());
-    }
-
-    @Test
-    void part2Attempt2() {
-//        assert false;  // ===================  Need to add.  ===================
-        assertEquals(1707, new Day16Part2Attempt2(RunType.TEST).getAnswer());
+        assertEquals(1707, new Day16Part2Attempt3(RunType.TEST).getAnswer());
     }
 
 }

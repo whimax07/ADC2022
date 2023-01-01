@@ -110,24 +110,27 @@ public class Day16Common {
             var nodeCount = 1;
 
             // Init the stack with items adjacent to the `start` valve/node.
-            var stack = new Stack<Traversal>();
-            for (var dest : start.destinations) stack.add(new Traversal(dest, 1));
+            var newStack = new Stack<Traversal>();
+            for (var dest : start.destinations) newStack.add(new Traversal(dest, 1));
 
-            while (!stack.isEmpty() && nodeCount < numNodes) {
-                var traversal = stack.pop();
+            while (!newStack.isEmpty() && nodeCount < numNodes) {
+                var stack = new Stack<Traversal>();
+                stack.addAll(newStack);
+                newStack.clear();
 
-                if (visitedValves.contains(traversal.valve)) continue;
-                visitedValves.add(traversal.valve);
+                for (var traversal : stack) {
+                    if (visitedValves.contains(traversal.valve)) continue;
+                    visitedValves.add(traversal.valve);
 
-                if (valveNodeMap.containsKey(traversal.valve)) {
-                    var node = valveNodeMap.get(traversal.valve);
-                    // We add one to the distance for the extra work to open a valve.
-                    startNode.getDistanceMap().put(node, traversal.distance + 1);
-                    nodeCount ++;
-                }
+                    if (valveNodeMap.containsKey(traversal.valve)) {
+                        var node = valveNodeMap.get(traversal.valve);
+                        startNode.getDistanceMap().put(node, traversal.distance);
+                        nodeCount ++;
+                    }
 
-                for (var dest : traversal.valve.destinations) {
-                    stack.add(new Traversal(dest, traversal.distance + 1));
+                    for (var dest : traversal.valve.destinations) {
+                        newStack.add(new Traversal(dest, traversal.distance + 1));
+                    }
                 }
             }
         }
@@ -140,6 +143,14 @@ public class Day16Common {
 
         public Node getEntrance() {
             return entrance;
+        }
+
+        public Node getNode(String name) {
+            for (var node : nodes) {
+                if (node.name.equals(name)) return node;
+            }
+
+            throw new InputMismatchException("No node with the provided name \"" + name + "\".");
         }
 
 
@@ -304,6 +315,10 @@ public class Day16Common {
 
         public HashMap<Node, Integer> getDistanceMap() {
             return distanceMap;
+        }
+
+        public int getTimeToOpen(Node node) {
+            return distanceMap.get(node) + 1;
         }
 
         public int getRate() {
