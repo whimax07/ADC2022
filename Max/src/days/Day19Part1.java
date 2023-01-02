@@ -30,13 +30,19 @@ public class Day19Part1 implements GenericDay {
 
     private int calcMaxGeodes(Blueprint blueprint) {
         Stack<Moment> branches = new Stack<>();
+
+        final Cost oreRobotCost = blueprint.getOreRobot();
+        final Cost clayRobotCost = blueprint.getClayRobot();
+        final Cost obsidianRobotCost = blueprint.getObsidianRobot();
+        final Cost geodeRobotCost = blueprint.getGeodeRobot();
+
         final int maxOreNeeded = Integer.max(Integer.max(Integer.max(
-                                blueprint.getOreRobot().ore(), blueprint.getClayRobot().ore()),
-                        blueprint.getObsidianRobot().ore()),
-                blueprint.getGeodeRobot().ore()
+                                oreRobotCost.ore(), clayRobotCost.ore()),
+                obsidianRobotCost.ore()),
+                geodeRobotCost.ore()
         );
-        final int maxClayNeeded = blueprint.getObsidianRobot().clay();
-        final int maxObsidianNeeded = blueprint.getGeodeRobot().obsidian();
+        final int maxClayNeeded = obsidianRobotCost.clay();
+        final int maxObsidianNeeded = geodeRobotCost.obsidian();
 
         branches.add(new Moment(
                 1,
@@ -59,23 +65,23 @@ public class Day19Part1 implements GenericDay {
 
             branch = branch.getIncome();
 
-            if (branch.robotCount.ore < maxOreNeeded && branch.bank.canAfford(blueprint.getOreRobot())) {
-                branches.add(branch.buyOreRobot(blueprint.getOreRobot()));
+            if (branch.robotCount.ore < maxOreNeeded && branch.bank.canAfford(oreRobotCost)) {
+                branches.add(branch.buyOreRobot(oreRobotCost));
                 hasMadeARobot = true;
             }
 
-            if (branch.robotCount.clay < maxClayNeeded && branch.bank.canAfford(blueprint.getClayRobot())) {
-                branches.add(branch.buyClayRobot(blueprint.getClayRobot()));
+            if (branch.robotCount.clay < maxClayNeeded && branch.bank.canAfford(clayRobotCost)) {
+                branches.add(branch.buyClayRobot(clayRobotCost));
                 hasMadeARobot = true;
             }
 
-            if (branch.robotCount.obsidian < maxObsidianNeeded && branch.bank.canAfford(blueprint.getObsidianRobot())) {
-                branches.add(branch.buyObsidianRobot(blueprint.getObsidianRobot()));
+            if (branch.robotCount.obsidian < maxObsidianNeeded && branch.bank.canAfford(obsidianRobotCost)) {
+                branches.add(branch.buyObsidianRobot(obsidianRobotCost));
                 hasMadeARobot = true;
             }
 
-            if (branch.bank.canAfford(blueprint.getGeodeRobot())) {
-                branches.add(branch.buyGeodeRobot(blueprint.getGeodeRobot()));
+            if (branch.bank.canAfford(geodeRobotCost)) {
+                branches.add(branch.buyGeodeRobot(geodeRobotCost));
                 hasMadeARobot = true;
             }
 
