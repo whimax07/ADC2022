@@ -26,6 +26,11 @@ public class Day16Part2Attempt4 implements GenericDay {
 
     private final HashMap<Integer, Integer> rateMap = new HashMap<>();
 
+    /**
+     *  Dimensions are form left to right: <ol>
+     *  <li> Time. </li> <li> Last visited node. </li> <li> Bitfield representing the active nodes. </li>
+     *  </ol>
+     */
     private final int[][][] scoreArray;
 
     private final long answer = 0;
