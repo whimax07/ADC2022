@@ -14,7 +14,8 @@ import java.util.HashMap;
 /**
  * This is a copy of this answer I found on Reddit.
  * <a href="https://github.com/joshuaruegge/adventofcode/blob/6a42294b613dce4e031bb06fd737a155ee8d538b/advent/aoc2022/Day16.java">
- *     Github joshuaruegge / adventofcode </a>
+ *     Github joshuaruegge / adventofcode </a>. I have changed a little, and it now runs a second faster on my
+ *     machine. (Original 3.7s ish, mine 2.6s ish).
  */
 public class Day16Part2Attempt4 implements GenericDay {
 
@@ -83,7 +84,7 @@ public class Day16Part2Attempt4 implements GenericDay {
         return rate;
     }
 
-    private void populateScoreArray() {
+    private void populateScoreArray()  {
         // Prefill the array with min int. Later we will set the value of reachable paths to something greater than
         // zero. We can use the difference between int min and the set value to excluded paths that cannot be reached
         // because we will find an answer by looking for maximum values.
@@ -93,15 +94,15 @@ public class Day16Part2Attempt4 implements GenericDay {
             }
         }
 
-        for (int i = 0; i < allNodes.size(); i++) {
-            Node node = allNodes.get(i);
-            var distance = entrance.getDistanceMap().get(node);
-            scoreArray[distance][i][1 << i] = 0;
+        for (int destIndex = 0; destIndex < allNodes.size(); destIndex++) {
+            Node node = allNodes.get(destIndex);
+            var time2Open = entrance.getTimeToOpen(node);
+            scoreArray[time2Open][destIndex][1 << destIndex] = 0;
         }
 
         // The traversal route doesn't matter, so we can use this nested loop.
         for (int time = 1; time < 27; time++) {
-            for (int currentNode = 1; currentNode < numNodes; currentNode++) {
+            for (int currentNode = 0; currentNode < numNodes; currentNode++) {
                 for (int openNodes = 0; openNodes < MAX_MASK; openNodes++) {
                     updateScoreArray(time, currentNode, openNodes);
                 }
@@ -124,22 +125,22 @@ public class Day16Part2Attempt4 implements GenericDay {
         var currentNodeMask = 1 << currentNodeIndex;
         if ((currentNodeMask & openNodesMask) == 0) return;
 
-        var distanceMap = allNodes.get(currentNodeIndex).getDistanceMap();
+        var currentNode = allNodes.get(currentNodeIndex);
 
         // Populate the scoreArray with the destinations of the current node as they are valid routes.
-        for (int nextNodeIndex = 1; nextNodeIndex < numNodes; nextNodeIndex++) {
+        for (int nextNodeIndex = 0; nextNodeIndex < numNodes; nextNodeIndex++) {
 
             var nextNodeMask = 1 << nextNodeIndex;
             if ((nextNodeMask & openNodesMask) != 0) continue;
 
-            var distance = distanceMap.get(allNodes.get(nextNodeIndex));
-            if (time + distance >= 27) continue;
+            var timeToOpen = currentNode.getTimeToOpen(allNodes.get(nextNodeIndex));
+            if (time + timeToOpen > 26) continue;
 
             var newOpenNodeMask = openNodesMask | nextNodeMask;
-            var travelPressure = (distance * pressureReleaseRate) + scoreArray[time][currentNodeIndex][openNodesMask];
+            var travelPressure = (timeToOpen * pressureReleaseRate) + scoreArray[time][currentNodeIndex][openNodesMask];
 
-            scoreArray[time + distance][nextNodeIndex][newOpenNodeMask] = Integer.max(
-                    scoreArray[time + distance][nextNodeIndex][newOpenNodeMask],
+            scoreArray[time + timeToOpen][nextNodeIndex][newOpenNodeMask] = Integer.max(
+                    scoreArray[time + timeToOpen][nextNodeIndex][newOpenNodeMask],
                     travelPressure
             );
         }
@@ -160,7 +161,8 @@ public class Day16Part2Attempt4 implements GenericDay {
                     // The node we end on must have been visited otherwise there should have been a better solution.
                     if (((1 << endingNodeIndex) & m) == 0) continue;
 
-                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m ^ n]);
+//                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m ^ n]);
+                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m & (~n)]);
                     best2 = Integer.max(best2, scoreArray[26][endingNodeIndex][n]);
                 }
 

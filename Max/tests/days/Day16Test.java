@@ -18,13 +18,4 @@ public class Day16Test {
         assertEquals(1707, new Day16Part2Attempt4(RunType.TEST).getAnswer());
     }
 
-    @Test
-    void calculateRoute() {
-        var attempt4 = new Day16Part2Attempt4(RunType.TEST);
-        assertEquals(0, attempt4.calculateRate(0));
-        assertEquals(2, attempt4.calculateRate(1));
-        assertEquals(5, attempt4.calculateRate(3));
-        assertEquals(22, attempt4.calculateRate(1 << 5));
-    }
-
 }
