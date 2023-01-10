@@ -58,16 +58,6 @@ public class Day16Part2Attempt4 implements GenericDay {
         populateScoreArray();
 
         answer = calculateBestScore();
-
-//        var set1 = new ArrayList<Node>();
-//        set1.add(completeGraph.getNode("JJ"));
-//        set1.add(completeGraph.getNode("BB"));
-//        set1.add(completeGraph.getNode("CC"));
-//
-//        var set2 = new ArrayList<Node>();
-//        set2.add(completeGraph.getNode("DD"));
-//        set2.add(completeGraph.getNode("HH"));
-//        set2.add(completeGraph.getNode("EE"));
     }
 
     public int calculateRate(int valuesOpen) {
@@ -94,6 +84,8 @@ public class Day16Part2Attempt4 implements GenericDay {
             }
         }
 
+        // Init the array with routes that we know are valid. Such invited values will be preferred over
+        // Integer.MIN_VALUE.
         for (int destIndex = 0; destIndex < allNodes.size(); destIndex++) {
             Node node = allNodes.get(destIndex);
             var time2Open = entrance.getTimeToOpen(node);
@@ -161,8 +153,7 @@ public class Day16Part2Attempt4 implements GenericDay {
                     // The node we end on must have been visited otherwise there should have been a better solution.
                     if (((1 << endingNodeIndex) & m) == 0) continue;
 
-//                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m ^ n]);
-                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m & (~n)]);
+                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m ^ n]);
                     best2 = Integer.max(best2, scoreArray[26][endingNodeIndex][n]);
                 }
 
