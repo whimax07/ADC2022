@@ -24,6 +24,8 @@ public class Day16Part2Attempt4 implements GenericDay {
 
     private final int numNodes;
 
+    private final int MAX_MASK;
+
     private final HashMap<Integer, Integer> rateMap = new HashMap<>();
 
     /**
@@ -33,7 +35,7 @@ public class Day16Part2Attempt4 implements GenericDay {
      */
     private final int[][][] scoreArray;
 
-    private final long answer = 0;
+    private final long answer;
 
 
 
@@ -48,9 +50,13 @@ public class Day16Part2Attempt4 implements GenericDay {
         allNodes = completeGraph.getNodes();
         allNodes.sort(Comparator.comparingInt(Node::getRate));
         numNodes = allNodes.size();
+        MAX_MASK = 1 << numNodes;
 
-        scoreArray = new int[27][numNodes][1 << numNodes];
+        scoreArray = new int[27][numNodes][MAX_MASK];
+        System.out.println("The score array has " + 27 * numNodes * MAX_MASK + " elements.");
         populateScoreArray();
+
+        answer = calculateBestScore();
 
 //        var set1 = new ArrayList<Node>();
 //        set1.add(completeGraph.getNode("JJ"));
@@ -63,12 +69,12 @@ public class Day16Part2Attempt4 implements GenericDay {
 //        set2.add(completeGraph.getNode("EE"));
     }
 
-    private int calculateRate(int valuesOpen) {
+    public int calculateRate(int valuesOpen) {
         var rate = 0;
 
-        for (Node allNode : allNodes) {
+        for (Node node : allNodes) {
             if ((valuesOpen & 1) == 1) {
-                rate += allNode.getRate();
+                rate += node.getRate();
             }
 
             valuesOpen = valuesOpen >> 1;
@@ -78,8 +84,6 @@ public class Day16Part2Attempt4 implements GenericDay {
     }
 
     private void populateScoreArray() {
-        var maxMask = 1 << numNodes;
-
         // Prefill the array with min int. Later we will set the value of reachable paths to something greater than
         // zero. We can use the difference between int min and the set value to excluded paths that cannot be reached
         // because we will find an answer by looking for maximum values.
@@ -89,18 +93,82 @@ public class Day16Part2Attempt4 implements GenericDay {
             }
         }
 
+        for (int i = 0; i < allNodes.size(); i++) {
+            Node node = allNodes.get(i);
+            var distance = entrance.getDistanceMap().get(node);
+            scoreArray[distance][i][1 << i] = 0;
+        }
+
         // The traversal route doesn't matter, so we can use this nested loop.
         for (int time = 1; time < 27; time++) {
-            for (int currentNode = 1; currentNode < maxMask; currentNode <<= 1) {
-                for (int openNodes = 0; openNodes < maxMask; openNodes++) {
+            for (int currentNode = 1; currentNode < numNodes; currentNode++) {
+                for (int openNodes = 0; openNodes < MAX_MASK; openNodes++) {
                     updateScoreArray(time, currentNode, openNodes);
                 }
             }
         }
     }
 
-    private void updateScoreArray(int time, int currentNode, int openNodes) {
+    private void updateScoreArray(int time, int currentNodeIndex, int openNodesMask) {
+        int pressureReleaseRate = rateMap.computeIfAbsent(openNodesMask, this::calculateRate);
+        int accumulatedScore = scoreArray[time - 1][currentNodeIndex][openNodesMask] + pressureReleaseRate;
 
+        // This score may have been populated by looking at the destinations of a know valid route and therefore
+        // "time - 1" may not have been populated. Hence, we can't just increment "time - 1" by the pressure release
+        // of the open values.
+        int currentScore = scoreArray[time][currentNodeIndex][openNodesMask];
+
+        scoreArray[time][currentNodeIndex][openNodesMask] = Integer.max(currentScore, accumulatedScore);
+
+        // If the currentNodeIndex is not open, continue. (We don't want to add successors.)
+        var currentNodeMask = 1 << currentNodeIndex;
+        if ((currentNodeMask & openNodesMask) == 0) return;
+
+        var distanceMap = allNodes.get(currentNodeIndex).getDistanceMap();
+
+        // Populate the scoreArray with the destinations of the current node as they are valid routes.
+        for (int nextNodeIndex = 1; nextNodeIndex < numNodes; nextNodeIndex++) {
+
+            var nextNodeMask = 1 << nextNodeIndex;
+            if ((nextNodeMask & openNodesMask) != 0) continue;
+
+            var distance = distanceMap.get(allNodes.get(nextNodeIndex));
+            if (time + distance >= 27) continue;
+
+            var newOpenNodeMask = openNodesMask | nextNodeMask;
+            var travelPressure = (distance * pressureReleaseRate) + scoreArray[time][currentNodeIndex][openNodesMask];
+
+            scoreArray[time + distance][nextNodeIndex][newOpenNodeMask] = Integer.max(
+                    scoreArray[time + distance][nextNodeIndex][newOpenNodeMask],
+                    travelPressure
+            );
+        }
+    }
+
+    private int calculateBestScore() {
+        var bestScore = 0;
+
+        for (int m = 1; m < MAX_MASK; m++) {
+            for (int n = 1; n < MAX_MASK; n++) {
+                // Make sure n is a subset of m.
+                if ((m & n) != n) continue;
+
+                var best1 = 0;
+                var best2 = 0;
+
+                for (int endingNodeIndex = 0; endingNodeIndex < numNodes; endingNodeIndex++) {
+                    // The node we end on must have been visited otherwise there should have been a better solution.
+                    if (((1 << endingNodeIndex) & m) == 0) continue;
+
+                    best1 = Integer.max(best1, scoreArray[26][endingNodeIndex][m ^ n]);
+                    best2 = Integer.max(best2, scoreArray[26][endingNodeIndex][n]);
+                }
+
+                bestScore = Integer.max(bestScore, best1 + best2);
+            }
+        }
+
+        return bestScore;
     }
 
 
@@ -108,11 +176,6 @@ public class Day16Part2Attempt4 implements GenericDay {
     public long getAnswer() {
         return answer;
     }
-
-
-
-    // NOTE(Max): If this blows out the Ram usage we can look at a bit field impl.
-    private record DisjointSets(ArrayList<Node> set1, ArrayList<Node> set2) {  }
 
 
 
