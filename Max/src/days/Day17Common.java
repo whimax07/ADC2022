@@ -40,6 +40,12 @@ public class Day17Common {
             return ROCKS[++shapeIndex % ROCKS.length];
         }
 
+
+
+        public static Rock peekIndex(int index) {
+            return ROCKS[index];
+        }
+
     }
 
     public static class Rock {
