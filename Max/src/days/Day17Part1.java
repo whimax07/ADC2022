@@ -3,6 +3,7 @@ package days;
 import days.Day17Common.Direction;
 import days.Day17Common.Rock;
 import days.Day17Common.RockItr;
+import days.Day17Common.WindItr;
 import utils.GenericDay;
 import utils.ReadLines;
 import utils.RunType;
@@ -10,15 +11,17 @@ import utils.v2i;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
+
+import static days.Day17Common.applyWind;
+import static days.Day17Common.decrementY;
 
 public class Day17Part1 implements GenericDay {
 
-    private int answer = 0;
+    private final int answer;
 
     private WindItr windItr;
 
-    private final List<boolean[]> tower = new ArrayList<>();
+    private final ArrayList<boolean[]> tower = new ArrayList<>();
 
 
 
@@ -33,6 +36,8 @@ public class Day17Part1 implements GenericDay {
         for (int i = 0; i < 2022; i++) {
             dropRock(rockItr.getNext());
         }
+
+        answer = tower.size() - 1;
     }
 
     private void readLine(String line) {
@@ -40,49 +45,72 @@ public class Day17Part1 implements GenericDay {
     }
 
     private void dropRock(Rock rock) {
-        var centre = new v2i(2, tower.size() + 4);
+        var centre = new v2i(2, tower.size() + 3);
 
-        for (int height = tower.size() + 3; height > 0; height--) {
-            var stops = checkCollisionVertical(rock, centre);
-            if (stops) {
+        // When centre.y is zero the rock is resting on the ground.
+        while (centre.y() > 0) {
+            var wind = windItr.next();
+            if (!collidesHorizontal(rock, centre, wind)) {
+                centre = applyWind(centre, wind);
+            }
+
+            if (collidesVertical(rock, centre)) {
                 addRockToWall(rock, centre);
                 return;
             }
             centre = decrementY(centre);
-
-            var wind = windItr.next();
-            var blocked = checkCollisionHorizontal(rock, centre, wind);
-            if (!blocked) {
-                centre = applyWind(centre, rock.getWidth(), wind);
-            }
         }
 
         throw new RuntimeException("The rock should have hit the floor but didn't.");
     }
 
-    private boolean checkCollisionVertical(Rock rock, v2i centre) {
+    private boolean collidesHorizontal(Rock rock, v2i centre, Direction wind) {
+        if (wind == Direction.LEFT && centre.x() == 0) return true;
+
+        if (wind == Direction.RIGHT && centre.x() + rock.getWidth() == 6) return true;
+
+        var maxHeight = tower.size() - 1;
+        var windOffset = (wind == Direction.LEFT) ? -1 : 1;
+
+        for (var piece : rock.getPieces()) {
+            int height = centre.y() + piece.y();
+            if (height > maxHeight) continue;
+
+            int x = centre.x() + piece.x() + windOffset;
+            if (tower.get(height)[x]) return true;
+        }
+
         return false;
     }
 
-    private void addRockToWall(Rock rock, v2i postion) {
+    private boolean collidesVertical(Rock rock, v2i centre) {
+        if (centre.y() > tower.size()) return false;
 
-    }
+        var maxHeight = tower.size();
 
-    private boolean checkCollisionHorizontal(Rock rock, v2i centre, Direction wind) {
+        // centre.y should be greater than 0 as the ground is at 0.
+        assert(centre.y() > 0);
+
+        for (var rockPiece : rock.getPieces()) {
+            int height = centre.y() + rockPiece.y();
+            if (height > maxHeight) continue;
+
+            if (tower.get(height - 1)[centre.x() + rockPiece.x()]) return true;
+        }
+
         return false;
     }
 
+    private void addRockToWall(Rock rock, v2i centre) {
+        for (var piece : rock.getPieces()) {
+            int height = centre.y() + piece.y();
 
+            while (tower.size() <= height) {
+                tower.add(new boolean[7]);
+            }
 
-    private static v2i decrementY(v2i input) {
-        return new v2i(input.x() - 1, input.y());
-    }
-
-    public v2i applyWind(v2i centre, int width, Direction windDirection) {
-        return switch (windDirection) {
-            case LEFT -> new v2i(centre.x() - 1, centre.y());
-            case RIGHT -> new v2i(centre.x() + 1, centre.y());
-        };
+            tower.get(height)[centre.x() + piece.x()] = true;
+        }
     }
 
 
@@ -90,38 +118,6 @@ public class Day17Part1 implements GenericDay {
     public int getAnswer() {
         return answer;
     }
-
-
-
-
-
-    private static class WindItr {
-
-        private final ArrayList<Direction> winds = new ArrayList<>();
-
-        private int turnNumber = -1;
-
-
-
-        public WindItr(String line) {
-            for (var c : line.toCharArray()) {
-                switch (c) {
-                    case '<' -> winds.add(Direction.LEFT);
-                    case '>' -> winds.add(Direction.RIGHT);
-                }
-            }
-        }
-
-
-
-        public Direction next() {
-            turnNumber = (turnNumber + 1) % winds.size();
-            return winds.get(turnNumber);
-        }
-
-    }
-
-
 
 
 
