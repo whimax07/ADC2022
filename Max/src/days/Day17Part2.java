@@ -54,7 +54,7 @@ public class Day17Part2 implements GenericDay {
             dropRock(rockItr.getNext(), -1);
         }
 
-        answer = tower.size() + numReps * repTowerHeight;
+        answer = tower.size() - 1 + numReps * repTowerHeight;
     }
 
     private long findRep(RockItr rockItr) {
@@ -67,7 +67,7 @@ public class Day17Part2 implements GenericDay {
 
             sections.add(currentSection);
             if (checkForReps()) {
-                return i * itrCrossProduct;
+                return (i + 1) * itrCrossProduct;
             }
             currentSection = new Section(tower.size() - 1);
         }
