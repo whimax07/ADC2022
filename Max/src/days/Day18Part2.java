@@ -8,7 +8,7 @@ import java.io.File;
 
 public class Day18Part2 implements GenericDay {
 
-    private final int answer;
+    private final int answer = 0;
 
 
 
@@ -16,6 +16,8 @@ public class Day18Part2 implements GenericDay {
         File inputFile = getFile(runType, 18);
 
         new ReadLines(inputFile, this::readLine).readFile();
+
+        // Fill the container with "gas" (a breath first search) and then count the contacted surfaces.
     }
 
     private void readLine(String line) {
