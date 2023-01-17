@@ -1,5 +1,6 @@
 package days;
 
+import utils.Counter;
 import utils.GenericDay;
 import utils.ReadLines;
 import utils.RunType;
@@ -9,11 +10,15 @@ import java.util.HashSet;
 
 public class Day18Part1Method2 implements GenericDay {
 
-    private final HashSet<v3s> conflictSet = new HashSet<>();
-
-    private int count = 0;
+    private final HashSet<v3s> squareSet = new HashSet<>();
 
     private int joinedFaces = 0;
+
+    private final Counter<v3s> openFaces = new Counter<>();
+
+    private int closedFaceCount = 0;
+
+    private int count = 0;
 
     private final int answer;
 
@@ -24,26 +29,46 @@ public class Day18Part1Method2 implements GenericDay {
 
         new ReadLines(inputFile, this::readLine).readFile();
 
-        answer = (count * 6) - (joinedFaces * 2);
+        answer = (squareSet.size() * 6) - (joinedFaces * 2);
+        assert(answer == (count * 6 - closedFaceCount));
     }
 
     private void readLine(String line) {
-        count ++;
-
         var cords = line.split(",");
 
         var x = Short.parseShort(cords[0]);
         var y = Short.parseShort(cords[1]);
         var z = Short.parseShort(cords[2]);
 
-        conflictSet.add(new v3s(x, y, z));
+        ideaCheckForExistingCells(x, y, z);
+        ideaCheckForFaces(x, y, z);
+    }
 
-        if (conflictSet.contains(new v3s((short) (x - 1), y, z))) joinedFaces ++;
-        if (conflictSet.contains(new v3s((short) (x + 1), y, z))) joinedFaces ++;
-        if (conflictSet.contains(new v3s(x, (short) (y - 1), z))) joinedFaces ++;
-        if (conflictSet.contains(new v3s(x, (short) (y + 1), z))) joinedFaces ++;
-        if (conflictSet.contains(new v3s(x, y, (short) (z - 1)))) joinedFaces ++;
-        if (conflictSet.contains(new v3s(x, y, (short) (z + 1)))) joinedFaces ++;
+    private void ideaCheckForExistingCells(short x, short y, short z) {
+        squareSet.add(new v3s(x, y, z));
+
+        if (squareSet.contains(new v3s((short) (x + 1), y, z))) joinedFaces ++;
+        if (squareSet.contains(new v3s((short) (x - 1), y, z))) joinedFaces ++;
+        if (squareSet.contains(new v3s(x, (short) (y + 1), z))) joinedFaces ++;
+        if (squareSet.contains(new v3s(x, (short) (y - 1), z))) joinedFaces ++;
+        if (squareSet.contains(new v3s(x, y, (short) (z + 1)))) joinedFaces ++;
+        if (squareSet.contains(new v3s(x, y, (short) (z - 1)))) joinedFaces ++;
+    }
+
+    private void ideaCheckForFaces(short x, short y, short z) {
+        count ++;
+
+        var count = openFaces.count(new v3s(x, y, z));
+        if (count > 0) {
+            closedFaceCount += count + 1;
+        }
+
+        openFaces.add(new v3s((short) (x + 1), y, z));
+        openFaces.add(new v3s((short) (x - 1), y, z));
+        openFaces.add(new v3s(x, (short) (y + 1), z));
+        openFaces.add(new v3s(x, (short) (y - 1), z));
+        openFaces.add(new v3s(x, y, (short) (z + 1)));
+        openFaces.add(new v3s(x, y, (short) (z - 1)));
     }
 
 
