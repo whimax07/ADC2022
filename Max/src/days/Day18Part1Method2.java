@@ -8,6 +8,14 @@ import utils.RunType;
 import java.io.File;
 import java.util.HashSet;
 
+/**
+ * There are two main chooses I can think of for the needed data structure an Array of bools and a HashMap (HashSet and
+ * Counter here). You can also take to approaches to the algorithm either keep track of the cubes and see if any faces
+ * of the current cube are occupied or keep track of the faces of each square you encounter.
+ * <br>
+ * I believe that the Array of bools and tracking what cubes are present is the best. This is implemented in
+ * Day18Part1Method1.
+ */
 public class Day18Part1Method2 implements GenericDay {
 
     private final HashSet<v3s> squareSet = new HashSet<>();
@@ -17,8 +25,6 @@ public class Day18Part1Method2 implements GenericDay {
     private final Counter<v3s> openFaces = new Counter<>();
 
     private int closedFaceCount = 0;
-
-    private int count = 0;
 
     private final int answer;
 
@@ -30,7 +36,7 @@ public class Day18Part1Method2 implements GenericDay {
         new ReadLines(inputFile, this::readLine).readFile();
 
         answer = (squareSet.size() * 6) - (joinedFaces * 2);
-        assert(answer == (count * 6 - closedFaceCount));
+        assert(answer == (openFaces.countTotal() - closedFaceCount));
     }
 
     private void readLine(String line) {
@@ -56,11 +62,9 @@ public class Day18Part1Method2 implements GenericDay {
     }
 
     private void ideaCheckForFaces(short x, short y, short z) {
-        count ++;
-
         var count = openFaces.count(new v3s(x, y, z));
         if (count > 0) {
-            closedFaceCount += count + 1;
+            closedFaceCount += count * 2;
         }
 
         openFaces.add(new v3s((short) (x + 1), y, z));

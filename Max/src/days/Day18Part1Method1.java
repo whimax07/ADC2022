@@ -7,6 +7,14 @@ import utils.RunType;
 import java.io.File;
 import java.util.ArrayList;
 
+/**
+ * There are two main chooses I can think of for the needed data structure an Array of bools and a HashMap (HashSet and
+ * Counter here). You can also take to approaches to the algorithm either keep track of the cubes and see if any faces
+ * of the current cube are occupied or keep track of the faces of each square you encounter.
+ * <br>
+ * I believe that the Array of bools and tracking what cubes are present is the best. This is implemented in
+ * Day18Part1Method1.
+ */
 public class Day18Part1Method1 implements GenericDay {
 
     private final boolean[][][] cubeArray;
