@@ -19,8 +19,8 @@ public class Day18Test {
 
     @Test
     void part2() {
-        assert false;  // ===================  Need to add.  ===================
-        assertEquals(1514285714288L, new Day18Part2(RunType.TEST).getAnswer());
+//        assert false;  // ===================  Need to add.  ===================
+        assertEquals(58, new Day18Part2(RunType.TEST).getAnswer());
     }
 
 }
