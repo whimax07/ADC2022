@@ -8,10 +8,12 @@ import utils.RunType;
 
 import java.io.File;
 import java.util.Stack;
+import java.util.function.Function;
 
 public class Day19Part1 implements GenericDay {
 
     private int answer = 0;
+
 
 
     public Day19Part1(RunType runType) {
@@ -29,68 +31,21 @@ public class Day19Part1 implements GenericDay {
     }
 
     private int calcMaxGeodes(Blueprint blueprint) {
-        Stack<Moment> branches = new Stack<>();
-
-        final Cost oreRobotCost = blueprint.getOreRobot();
-        final Cost clayRobotCost = blueprint.getClayRobot();
-        final Cost obsidianRobotCost = blueprint.getObsidianRobot();
-        final Cost geodeRobotCost = blueprint.getGeodeRobot();
-
-        final int maxOreNeeded = Integer.max(Integer.max(Integer.max(
-                                oreRobotCost.ore(), clayRobotCost.ore()),
-                obsidianRobotCost.ore()),
-                geodeRobotCost.ore()
-        );
-        final int maxClayNeeded = obsidianRobotCost.clay();
-        final int maxObsidianNeeded = geodeRobotCost.obsidian();
-
-        branches.add(new Moment(
+        var pastMoments = new Stack<Moment>();
+        pastMoments.add(new Moment(
                 1,
                 0,
                 new Cost(0, 0, 0),
                 new RobotCount(1, 0, 0, 0)
         ));
+        var maxGeodes = 0;
 
-        int max = 0;
-
-        while (!branches.isEmpty()) {
-            var branch = branches.pop();
-            var hasMadeARobot = false;
-
-            if (branch.time == 24) {
-                max = Integer.max(max, branch.geodes);
-                System.out.println("Current most geodes: " + max);
-                continue;
-            }
-
-            branch = branch.getIncome();
-
-            if (branch.robotCount.ore < maxOreNeeded && branch.bank.canAfford(oreRobotCost)) {
-                branches.add(branch.buyOreRobot(oreRobotCost));
-                hasMadeARobot = true;
-            }
-
-            if (branch.robotCount.clay < maxClayNeeded && branch.bank.canAfford(clayRobotCost)) {
-                branches.add(branch.buyClayRobot(clayRobotCost));
-                hasMadeARobot = true;
-            }
-
-            if (branch.robotCount.obsidian < maxObsidianNeeded && branch.bank.canAfford(obsidianRobotCost)) {
-                branches.add(branch.buyObsidianRobot(obsidianRobotCost));
-                hasMadeARobot = true;
-            }
-
-            if (branch.bank.canAfford(geodeRobotCost)) {
-                branches.add(branch.buyGeodeRobot(geodeRobotCost));
-                hasMadeARobot = true;
-            }
-
-            if (branch.bank.ore() < maxOreNeeded || hasMadeARobot) {
-                branches.add(branch);
-            }
+        var possessBranches = new PossessBranches(blueprint, pastMoments, maxGeodes);
+        while (possessBranches.hasBranchesToProcess()) {
+            possessBranches.process();
         }
 
-        return max;
+        return possessBranches.getBestScore();
     }
 
 
@@ -100,6 +55,113 @@ public class Day19Part1 implements GenericDay {
     }
 
 
+
+    private static class PossessBranches {
+
+        private Stack<Moment> newBranches = new Stack<>();
+
+        private int bestScore;
+
+        private Stack<Moment> pastBranches;
+
+        final Cost oreRobotCost;
+
+        final Cost clayRobotCost;
+
+        final Cost obsidianRobotCost;
+
+        final Cost geodeRobotCost;
+
+        final int maxOreNeeded;
+
+        final int maxClayNeeded;
+
+        final int maxObsidianNeeded;
+
+
+
+        public PossessBranches(Blueprint blueprint, Stack<Moment> pastBranches, int bestScore) {
+            this.bestScore = bestScore;
+            this.pastBranches = pastBranches;
+
+            oreRobotCost = blueprint.getOreRobot();
+            clayRobotCost = blueprint.getClayRobot();
+            obsidianRobotCost = blueprint.getObsidianRobot();
+            geodeRobotCost = blueprint.getGeodeRobot();
+
+            maxOreNeeded = Integer.max(
+                    Integer.max(
+                            Integer.max(
+                                    oreRobotCost.ore(), clayRobotCost.ore()
+                            ), obsidianRobotCost.ore()
+                    ), geodeRobotCost.ore()
+            );
+            maxClayNeeded = obsidianRobotCost.clay();
+            maxObsidianNeeded = geodeRobotCost.obsidian();
+        }
+
+
+
+        public void process() {
+            while (!pastBranches.isEmpty()) {
+                processBranch(pastBranches.pop());
+            }
+
+            pastBranches = newBranches;
+            newBranches = new Stack<>();
+        }
+
+        private void processBranch(Moment moment) {
+            if (moment.time == 24) {
+                bestScore = Integer.max(bestScore, moment.geodes);
+                return;
+            }
+
+            if (moment.robotCount.geode < maxOreNeeded) {
+                makeBranch(moment, oreRobotCost, RobotCount::addOre);
+            }
+
+            if (moment.robotCount.clay < maxClayNeeded) {
+                makeBranch(moment, clayRobotCost, RobotCount::addClay);
+            }
+
+            if (moment.robotCount.obsidian < maxObsidianNeeded) {
+                makeBranch(moment, obsidianRobotCost, RobotCount::addObsidian);
+            }
+
+            makeBranch(moment, geodeRobotCost, RobotCount::addGeode);
+        }
+
+        private void makeBranch(Moment moment, Cost robotCost, Function<RobotCount, RobotCount> addRobot) {
+            // What about having zero of a needed type of robot?
+            var timeNeeded = (robotCost - moment.bank) / moment.robotCount;
+            
+            if (moment.time + timeNeeded >= 24) {
+                bestScore = Integer.max(bestScore, moment.geodes + (24 - moment.time) * moment.robotCount.geode);
+                return;
+            }
+            
+            var newBank = moment.bank + (moment.robotCount * timeNeeded) - robotCost;
+
+            newBranches.add(new Moment(
+                    moment.time + timeNeeded,
+                    moment.geodes + timeNeeded * moment.robotCount.geode,
+                    newBank,
+                    addRobot.apply(moment.robotCount)
+            ));
+        }
+
+
+
+        public int getBestScore() {
+            return bestScore;
+        }
+
+        public boolean hasBranchesToProcess() {
+            return !pastBranches.isEmpty();
+        }
+
+    }
 
     private record Moment(int time, int geodes, Cost bank, RobotCount robotCount) {
         public Moment getIncome() {
@@ -120,7 +182,7 @@ public class Day19Part1 implements GenericDay {
                     time,
                     geodes,
                     bank.buy(price),
-                    robotCount.addOre()
+                    RobotCount.addOre(robotCount)
             );
         }
 
@@ -129,7 +191,7 @@ public class Day19Part1 implements GenericDay {
                     time,
                     geodes,
                     bank.buy(price),
-                    robotCount.addClay()
+                    RobotCount.addClay(robotCount)
             );
         }
 
@@ -138,7 +200,7 @@ public class Day19Part1 implements GenericDay {
                     time,
                     geodes,
                     bank.buy(price),
-                    robotCount.addObsidian()
+                    RobotCount.addObsidian(robotCount)
             );
         }
 
@@ -147,26 +209,26 @@ public class Day19Part1 implements GenericDay {
                     time,
                     geodes,
                     bank.buy(price),
-                    robotCount.addGeode()
+                    RobotCount.addGeode(robotCount)
             );
         }
     }
 
     private record RobotCount(int ore, int clay, int obsidian, int geode) {
-        public RobotCount addOre() {
-            return new RobotCount(ore + 1, clay, obsidian, geode);
+        public static RobotCount addOre(RobotCount self) {
+            return new RobotCount(self.ore + 1, self.clay, self.obsidian, self.geode);
         }
 
-        public RobotCount addClay() {
-            return new RobotCount(ore, clay + 1, obsidian, geode);
+        public static RobotCount addClay(RobotCount self) {
+            return new RobotCount(self.ore, self.clay + 1, self.obsidian, self.geode);
         }
 
-        public RobotCount addObsidian() {
-            return new RobotCount(ore, clay, obsidian + 1, geode);
+        public static RobotCount addObsidian(RobotCount self) {
+            return new RobotCount(self.ore, self.clay, self.obsidian + 1, self.geode);
         }
 
-        public RobotCount addGeode() {
-            return new RobotCount(ore, clay, obsidian, geode + 1);
+        public static RobotCount addGeode(RobotCount self) {
+            return new RobotCount(self.ore, self.clay, self.obsidian, self.geode + 1);
         }
     }
 
