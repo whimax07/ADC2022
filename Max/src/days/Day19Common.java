@@ -97,12 +97,12 @@ public class Day19Common {
     }
 
     public record Cost(int ore, int clay, int obsidian) {
-        public boolean canAfford(Cost cost) {
-            return ore >= cost.ore && clay >= cost.clay && obsidian >= cost.obsidian;
+        public static Cost add(Cost lhs, Cost rhs) {
+            return new Cost(lhs.ore + rhs.ore, lhs.clay + rhs.clay, lhs.obsidian + rhs.obsidian);
         }
 
-        public Cost buy(Cost price) {
-            return new Cost(ore - price.ore, clay - price.clay, obsidian - price.obsidian);
+        public static Cost subtract(Cost lhs, Cost rhs) {
+            return new Cost(lhs.ore - rhs.ore, lhs.clay - rhs.clay, lhs.obsidian - rhs.obsidian);
         }
     }
 

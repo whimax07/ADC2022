@@ -39,10 +39,12 @@ public class Day19Part1 implements GenericDay {
                 new RobotCount(1, 0, 0, 0)
         ));
         var maxGeodes = 0;
+        var count = 0;
 
         var possessBranches = new PossessBranches(blueprint, pastMoments, maxGeodes);
         while (possessBranches.hasBranchesToProcess()) {
             possessBranches.process();
+            System.out.println("Pass " + (++count));
         }
 
         return possessBranches.getBestScore();
@@ -134,14 +136,17 @@ public class Day19Part1 implements GenericDay {
 
         private void makeBranch(Moment moment, Cost robotCost, Function<RobotCount, RobotCount> addRobot) {
             // What about having zero of a needed type of robot?
-            var timeNeeded = (robotCost - moment.bank) / moment.robotCount;
+            var timeNeeded = calcTimeNeeded(robotCost, moment.bank, moment.robotCount);
             
             if (moment.time + timeNeeded >= 24) {
                 bestScore = Integer.max(bestScore, moment.geodes + (24 - moment.time) * moment.robotCount.geode);
                 return;
             }
             
-            var newBank = moment.bank + (moment.robotCount * timeNeeded) - robotCost;
+            var newBank = Cost.subtract(
+                    Cost.add(moment.bank, moment.robotCount.incomeGenerated(timeNeeded)),
+                    robotCost
+            );
 
             newBranches.add(new Moment(
                     moment.time + timeNeeded,
@@ -149,6 +154,33 @@ public class Day19Part1 implements GenericDay {
                     newBank,
                     addRobot.apply(moment.robotCount)
             ));
+        }
+
+        private static int calcTimeNeeded(Cost robotCost, Cost bank, RobotCount income) {
+            var incomeNeeded = Cost.subtract(robotCost, bank);
+
+            int timeNeeded = 0;
+
+            // 100_000 is returned if the income for any resource is 0 and a non-zero amount is needed because 100_000
+            // is more than 24, the time we have, and therefore a value that will fail the has time check without any
+            // risk of overflow.
+
+            if (incomeNeeded.ore() > 0) {
+                if (income.ore == 0) return 100_000;
+                timeNeeded = Integer.max(timeNeeded, incomeNeeded.ore() / income.ore);
+            }
+
+            if (incomeNeeded.clay() > 0) {
+                if (income.clay == 0) return 100_000;
+                timeNeeded = Integer.max(timeNeeded, incomeNeeded.clay() / income.clay);
+            }
+
+            if (incomeNeeded.obsidian() > 0) {
+                if (income.obsidian == 0) return 100_000;
+                timeNeeded = Integer.max(timeNeeded, incomeNeeded.obsidian() / income.obsidian);
+            }
+            
+            return timeNeeded;
         }
 
 
@@ -163,58 +195,13 @@ public class Day19Part1 implements GenericDay {
 
     }
 
-    private record Moment(int time, int geodes, Cost bank, RobotCount robotCount) {
-        public Moment getIncome() {
-            return new Moment(
-                    time + 1,
-                    geodes + robotCount.geode,
-                    new Cost(
-                            bank.ore() + robotCount().ore(),
-                            bank.clay() + robotCount().clay(),
-                            bank.obsidian() + robotCount().obsidian()
-                    ),
-                    robotCount
-            );
-        }
-
-        public Moment buyOreRobot(Cost price) {
-            return new Moment(
-                    time,
-                    geodes,
-                    bank.buy(price),
-                    RobotCount.addOre(robotCount)
-            );
-        }
-
-        public Moment buyClayRobot(Cost price) {
-            return new Moment(
-                    time,
-                    geodes,
-                    bank.buy(price),
-                    RobotCount.addClay(robotCount)
-            );
-        }
-
-        public Moment buyObsidianRobot(Cost price) {
-            return new Moment(
-                    time,
-                    geodes,
-                    bank.buy(price),
-                    RobotCount.addObsidian(robotCount)
-            );
-        }
-
-        public Moment buyGeodeRobot(Cost price) {
-            return new Moment(
-                    time,
-                    geodes,
-                    bank.buy(price),
-                    RobotCount.addGeode(robotCount)
-            );
-        }
-    }
+    private record Moment(int time, int geodes, Cost bank, RobotCount robotCount) {  }
 
     private record RobotCount(int ore, int clay, int obsidian, int geode) {
+        public Cost incomeGenerated(int time) {
+            return new Cost(ore * time, clay * time, obsidian * time);
+        }
+
         public static RobotCount addOre(RobotCount self) {
             return new RobotCount(self.ore + 1, self.clay, self.obsidian, self.geode);
         }
