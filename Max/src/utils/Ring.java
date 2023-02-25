@@ -36,8 +36,10 @@ public class Ring<E> {
                 "to be placed must not be null.");
         if (count <= 1) throw new RuntimeException("There must be at least two nodes for inserting one after the " +
                 "to be a sensible operation.");
+
         if (dest == insert) return;
-        if (dest.next == insert && insert != head) return;
+        if (dest.next == insert) return;
+
 
         if (head == insert) head = insert.next;
         if (tail == dest) tail = insert;
@@ -52,6 +54,11 @@ public class Ring<E> {
 
         dest.next = insert;
         insert.previous = dest;
+    }
+
+    /** You can't use this to insert a node to the head of the ring, aka index 0. */
+    public void insertBefore(Node<E> dest, Node<E> insert) {
+        insertAfter(dest.previous, insert);
     }
 
     public E get(int index) {
@@ -101,11 +108,15 @@ public class Ring<E> {
 
 
     public static <E> Node<E> get(Node<E> start, int jumps) {
-        var next = start;
-        for (int i = 0; i < jumps; i++) {
-            next = next.next;
+        var result = start;
+
+        if (jumps >= 0) {
+            for (int i = 0; i < jumps; i++) result = result.next;
+        } else {
+            for (int i = 0; i < -jumps; i++) result = result.previous;
         }
-        return next;
+
+        return result;
     }
 
 
@@ -115,7 +126,7 @@ public class Ring<E> {
 
         private final E value;
 
-        private Node<E> next;
+        public Node<E> next;
 
         private Node<E> previous;
 
@@ -123,6 +134,12 @@ public class Ring<E> {
 
         private Node(E value) {
             this.value = value;
+        }
+
+
+
+        public E getValue() {
+            return value;
         }
 
     }

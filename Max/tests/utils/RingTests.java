@@ -39,6 +39,10 @@ public class RingTests {
         ring.insertAfter(map.get(1), map.get(2));
         assertRingValuesSame(ring, 0, 1, 2, 3, 4);
 
+        // Swapping its self.
+        ring.insertAfter(map.get(1), map.get(1));
+        assertRingValuesSame(ring, 0, 1, 2, 3, 4);
+
         // Moving a (..., a, b, ...) to (..., b, c, ...).
         ring.insertAfter(map.get(2), map.get(1));
         assertRingValuesSame(ring, 0, 2, 1, 3, 4);
@@ -59,9 +63,9 @@ public class RingTests {
         ring.insertAfter(map.get(0), map.get(1));
         assertRingValuesSame(ring, 0, 1, 2, 3, 4);
 
-        // Swap the head and the tail.
+        // Swap the head and the tail. (No change as head.previous == tail.next)
         ring.insertAfter(map.get(4), map.get(0));
-        assertRingValuesSame(ring, 1, 2, 3, 4, 0);
+        assertRingValuesSame(ring, 0, 1, 2, 3, 4);
     }
 
 

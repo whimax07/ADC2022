@@ -8,16 +8,17 @@ import utils.RunType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Day20Part1 implements GenericDay {
 
-    private final ArrayList<Integer> inputs = new ArrayList<>();
+    private final ArrayList<AtomicInteger> inputs = new ArrayList<>();
 
     private final Ring<Integer> ring = new Ring<>();
 
-    private final HashMap<Integer, Ring.Node<Integer>> inputToNode = new HashMap<>();
+    private final HashMap<AtomicInteger, Ring.Node<Integer>> inputToNode = new HashMap<>();
 
-    private final int answer;
+    private int answer;
 
 
 
@@ -29,39 +30,41 @@ public class Day20Part1 implements GenericDay {
         makeMaps();
         mix();
 
-        var zero = inputToNode.get(0);
-        int zerosIndex = ring.getIndex(zero).orElseThrow();
+        var atomicZero = inputs.stream().filter(x -> x.get() == 0).findFirst().orElseThrow();
+        var zero = inputToNode.get(atomicZero);
 
-        answer = ring.get((zerosIndex + 1000) % ring.size())
-                + ring.get((zerosIndex + 2000) % ring.size())
-                + ring.get((zerosIndex + 3000) % ring.size());
+        var v1 = Ring.get(zero, 1000).getValue();
+        var v2 = Ring.get(zero, 2000).getValue();
+        var v3 = Ring.get(zero, 3000).getValue();
+        answer = v1 + v2 + v3;
     }
 
     private void readLine(String line) {
-        inputs.add(Integer.parseInt(line));
+        inputs.add(new AtomicInteger(Integer.parseInt(line)));
     }
 
     private void makeMaps() {
         for (var value : inputs) {
-            inputToNode.put(value, ring.pushBack(value));
+            inputToNode.put(value, ring.pushBack(value.get()));
         }
     }
 
     private void mix() {
-        System.out.println(ring);
         for (var val : inputs) {
             var node = inputToNode.get(val);
-            move(node, val);
-            System.out.println(ring);
+            move(node, val.get());
         }
     }
 
-    private void move(Ring.Node<Integer> node, int spaces) {
+    void move(Ring.Node<Integer> node, int spaces) {
         if (spaces == 0) return;
 
-        int steps = (spaces > 0) ? spaces : ring.size() + spaces - 1;
-        var predecessor = Ring.get(node, steps);
-        ring.insertAfter(predecessor, node);
+        var destNode = Ring.get(node, spaces);
+        if (spaces >= 0) {
+            ring.insertAfter(destNode, node);
+        } else {
+            ring.insertBefore(destNode, node);
+        }
     }
 
 

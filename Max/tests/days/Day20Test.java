@@ -8,6 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class Day20Test {
 
     @Test
+    void endRotation() {
+
+    }
+
+    @Test
     void part1() {
         assertEquals(3, new Day20Part1(RunType.TEST).getAnswer());
     }
